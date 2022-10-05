@@ -16,3 +16,11 @@ int lookupIdent(std::string ident) {
 
     return TOK_IDENT;
 }
+
+bool operator== (const Token& tok_a, const Token& tok_b) {
+    return (tok_a.type == tok_b.type && tok_a.literal == tok_b.literal);
+}
+
+bool operator!= (const Token& tok_a, const Token& tok_b) {
+    return !(tok_a == tok_b);
+}

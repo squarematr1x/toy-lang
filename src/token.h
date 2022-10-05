@@ -46,6 +46,9 @@ enum token_type {
 struct Token {
     int type;
     std::string literal;
+
+    friend bool operator== (const Token& tok_a, const Token& tok_b);
+    friend bool operator!= (const Token& tok_a, const Token& tok_b);
 };
 
 int lookupIdent(std::string ident);
