@@ -59,7 +59,6 @@ bool Lexer::isLetter(char c) {
 
 Token Lexer::nextToken() {
     Token tok;
-
     std::string literal = std::string(1, m_char);
 
     skipWhitespace();
@@ -115,7 +114,8 @@ Token Lexer::nextToken() {
                 tok.type = lookupIdent(tok.literal);
                 return tok;
             } else if (isdigit(m_char)) {
-                tok = {TOK_INT, readNumber()};        
+                tok = {TOK_INT, readNumber()};
+                return tok;
             } else {
                 tok = {TOK_ILLEGAL, literal};
             }
