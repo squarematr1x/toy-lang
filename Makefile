@@ -2,13 +2,12 @@ CXX := -g++
 CXX_FLAGS := -std=c++17 -Wall -Wextra -g
 LD_FLAGS := -L/usr/lib -lstdc++ -lm
 LD_TEST_FLAGS := -L /usr/local/lib -lpthread
-BUILD := ./build
+BUILD := build
 OBJ_DIR := $(BUILD)/obj
 TEST_OBJ_DIR := $(BUILD)/test_obj
 APP_DIR := $(BUILD)/app
 APP_TEST_DIR := $(BUILD)/test
 TARGET := toylang
-TEST_TARGET := test_toylang
 INCLUDE := -Iinclude/
 GTEST_INCLUDE := -I /usr/include -I /usr/src/gtest
 SRC := $(wildcard src/*.cpp)
@@ -33,21 +32,25 @@ $(APP_DIR)/$(TARGET): $(OBJECTS)
 	@mkdir -p $(@D)
 	$(CXX) $(CXX_FLAGS) -o $(APP_DIR)/$(TARGET) $^ $(LD_FLAGS)
 
-$(APP_TEST_DIR)/$(TEST_TARGET): $(TEST_OBJECTS)
+$(APP_TEST_DIR)/$(TARGET): $(TEST_OBJECTS)
 	@mkdir -p $(@D)
 	$(CXX) $(CXX_FLAGS) -o $(APP_TEST_DIR)/$(TARGET) $^ $(GTEST_SRC) $(GTEST_INCLUDE) $(LD_TEST_FLAGS)
 
 -include $(DEPENDENCIES)
 
-.PHONY: all build clean build_test test debug release info
+.PHONY: all build run clean test run-tests debug release info
 
 build:
 	@mkdir -p $(APP_DIR)
 	@mkdir -p $(OBJ_DIR)
 
-build_test: build $(APP_TEST_DIR)/$(TEST_TARGET)
+run: all
+	./$(APP_DIR)/$(TARGET)
 
-test: build_test
+test: build $(APP_TEST_DIR)/$(TARGET)
+
+run-tests: test
+	./$(APP_TEST_DIR)/$(TARGET)
 
 debug: CXXFLAGS += -DDEBUG -g
 debug: all
