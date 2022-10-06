@@ -3,7 +3,6 @@
 
 #include "../src/lexer.h"
 
-// TODO: Semicolon has problems?
 TEST(LexerTest, TestNextToken) {
     std::string input = "let x = 10; let y = 3; let foo = func(x, y) { x + y * 3/2 - 4;}; if (x > 5) return true else return false a == b a != b 2 < !z";
     Lexer test_lexer(input);
