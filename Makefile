@@ -1,4 +1,4 @@
-CXX := -g++
+CXX := -clang++
 CXX_FLAGS := -std=c++17 -Wall -Wextra -g
 LD_FLAGS := -L/usr/lib -lstdc++ -lm
 LD_TEST_FLAGS := -L /usr/local/lib -lpthread
