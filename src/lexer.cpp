@@ -3,8 +3,7 @@
 #include <iostream>
 
 Lexer::Lexer(std::string input)
-    : m_input(input)
-{
+    : m_input(input) {
     readChar();
 }
 
