@@ -1,5 +1,9 @@
 #include "token.h"
 
+Token::Token(int type, std::string literal)
+    : type(type), literal(literal) {
+}
+
 int lookupIdent(std::string ident) {
     std::map<std::string, int> keywords = {
         {"func", TOK_FUNC},

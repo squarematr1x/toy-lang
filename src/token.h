@@ -49,6 +49,9 @@ struct Token {
 
     friend bool operator== (const Token& tok_a, const Token& tok_b);
     friend bool operator!= (const Token& tok_a, const Token& tok_b);
+
+    Token() = default;
+    Token(int type, std::string literal);
 };
 
 int lookupIdent(std::string ident);
