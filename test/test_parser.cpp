@@ -13,19 +13,19 @@ void checkParseErrors(const Parser& parser) {
 }
 
 TEST(ParserTest, TestLetStatements) {
-    std::string input = "let x = 9; let y = 104; let foo = 37;";
+    const std::string input = "let x = 9; let y = 104; let foo = 37;";
     // std::string input = "let x = 9; let = 104; let 37;";
 
     Lexer lexer(input);
     Parser parser(lexer);
 
     auto program = parser.parseProgram();
-    unsigned int n_statements = program->nStatements();
+    const unsigned int n_statements = program->nStatements();
 
     EXPECT_TRUE(program != nullptr);
     EXPECT_EQ(n_statements, 3);
 
-    std::vector<std::string> expected_ident = {
+    const std::vector<std::string> expected_ident = {
         "x",
         "y",
         "foo"
@@ -40,13 +40,14 @@ TEST(ParserTest, TestLetStatements) {
 }
 
 TEST(ParserTest, TestReturnStatements) {
-    std::string input = "return 5; return 50; return 9999; return 0;";
+    const std::string input = "return 5; return 50; return 9999; return 0;";
 
     Lexer lexer(input);
     Parser parser(lexer);
 
     auto program = parser.parseProgram();
-    unsigned int n_statements = program->nStatements();
+    const unsigned int n_statements = program->nStatements();
+
     checkParseErrors(parser);
 
     EXPECT_TRUE(program != nullptr);
@@ -56,4 +57,23 @@ TEST(ParserTest, TestReturnStatements) {
         auto statement = program->getStatement(i);
         EXPECT_EQ(statement->tokenLiteral(), "return");
     }
+}
+
+TEST(ParserTest, TestToString) {
+    const std::string expected_str = "let test = x";
+    const Token let_tok = Token(TOK_LET, "let");
+    const Token first_ident_tok = Token(TOK_IDENT, "test");
+    const Token second_ident_tok = Token(TOK_IDENT, "x");
+
+    auto let_stmnt = std::make_unique<LetStatement>(let_tok);
+    auto first_ident_stmnt = Identifier(first_ident_tok, "test");
+    auto second_ident_stmnt = std::make_unique<Identifier>(second_ident_tok, "x");
+
+    let_stmnt->setName(first_ident_stmnt);
+    let_stmnt->setValue(std::move(second_ident_stmnt));
+
+    auto program = std::make_unique<Program>();
+    program->pushStatement(std::move(let_stmnt));
+
+    EXPECT_EQ(program->toString(), expected_str);
 }
