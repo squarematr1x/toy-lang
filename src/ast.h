@@ -76,6 +76,21 @@ public:
     const std::string tokenLiteral() const override { return m_tok.literal; }
 };
 
+class PrefixExpr: public Expr {
+    Token m_tok;
+    std::string m_operator;
+    std::unique_ptr<Expr> m_right;
+
+public:
+    PrefixExpr(Token tok, const std::string& oprtr);
+
+    void expressionNode() const override {}
+    void setRight(std::unique_ptr<Expr> right) { m_right = std::move(right); }
+
+    std::string toString() const override;
+    const std::string tokenLiteral() const override { return m_tok.literal; }
+};
+
 class LetStatement: public Statement {
     Token m_tok;
     Identifier m_name;
@@ -112,6 +127,8 @@ public:
     ExprStatement(Token tok);
 
     void statementNode() const override {}
+    void setExpr(std::unique_ptr<Expr> expr) { m_expr = std::move(expr); }
+
     std::string toString() const override;
 
     const std::string tokenLiteral() const override { return m_tok.literal; }

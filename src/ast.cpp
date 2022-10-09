@@ -6,7 +6,6 @@ std::ostream& operator<< (std::ostream& out, Node& node) {
     return out;
 }
 
-
 const std::string Program::tokenLiteral() const {
     if (static_cast<int>(m_statements.size()) > 0)
         return m_statements[0]->tokenLiteral();
@@ -36,13 +35,25 @@ std::unique_ptr<Statement> Program::getStatement(unsigned int index) {
     return std::move(m_statements[index]);
 }
 
-
 Identifier::Identifier(Token tok, const std::string& value) 
     : m_tok(tok), m_value(value) {
 }
 
 std::string Identifier::toString() const {
     return m_value;
+}
+
+PrefixExpr::PrefixExpr(Token tok, const std::string& oprtr)
+    : m_tok(tok), m_operator(oprtr) {
+}
+
+std::string PrefixExpr::toString() const {
+    std::string prefix_str = "(";
+    prefix_str += m_operator;
+    prefix_str += m_right->toString();
+    prefix_str += ")";
+
+    return prefix_str;
 }
 
 IntegerLiteral::IntegerLiteral(Token tok)
@@ -66,7 +77,6 @@ std::string LetStatement::toString() const {
 
     return let_stmnt_str;
 }
-
 
 ReturnStatement::ReturnStatement(Token tok)
     :m_tok(tok) {

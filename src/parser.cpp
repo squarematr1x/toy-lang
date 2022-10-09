@@ -1,6 +1,7 @@
 #include "parser.h"
 
 #include <algorithm>
+#include <iostream>
 
 Parser::Parser(const Lexer& lexer)
     : m_lexer(lexer) {
@@ -28,9 +29,9 @@ std::unique_ptr<Program> Parser::parseProgram() {
     while (m_cur_tok.type != TOK_EOF) {
         auto statement = parseStatement();
 
-        if (statement) {
+        if (statement)
             program->pushStatement(std::move(statement));
-        }
+
         nextToken();
     }
 
@@ -62,9 +63,8 @@ std::unique_ptr<LetStatement> Parser::parseLetStatement() {
         return nullptr;
 
     // Skipping the expressions until we encounter a semicolon
-    while (!curTokenIs(TOK_SEMICOLON)) {
+    while (!curTokenIs(TOK_SEMICOLON))
         nextToken();
-    }
 
     return statement;
 }
@@ -75,18 +75,17 @@ std::unique_ptr<ReturnStatement> Parser::parseReturnStatement() {
     nextToken();
 
     // Skipping the expressions until we encounter a semicolon
-    while (!curTokenIs(TOK_SEMICOLON)) {
+    while (!curTokenIs(TOK_SEMICOLON))
         nextToken();
-    }
 
     return statement;
 }
 
 std::unique_ptr<ExprStatement> Parser::parseExprStatement() {
     auto statement = std::make_unique<ExprStatement>(m_cur_tok);
+    auto expr = parseExpr(LOWEST);
 
-    // statement.setExpr(parseExpression(LOWEST)); // or something...
-
+    statement->setExpr(std::move(expr));
     if (peekTokenIs(TOK_SEMICOLON))
         nextToken();
 
@@ -102,8 +101,17 @@ std::unique_ptr<Expr> Parser::parseExpr(int precedence) {
         prefix = parseIdentifier(); break;
     case TOK_INT:
         prefix = parseIntegerLiteral(); break;
+    case TOK_MINUS:
+        prefix = parsePrefixExpr(); break;
+    case TOK_BANG:
+        prefix = parsePrefixExpr(); break;
     default:
         break;
+    }
+
+    if (!prefix) {
+        const std::string error = "no prefix parse function for " + std::to_string(m_cur_tok.type) + " found";
+        m_errors.push_back(error);
     }
 
     return prefix;
@@ -127,6 +135,18 @@ std::unique_ptr<Expr> Parser::parseIntegerLiteral() {
     int_lit->setValue(stoi(m_cur_tok.literal));
 
     return int_lit;
+}
+
+
+std::unique_ptr<Expr> Parser::parsePrefixExpr() {
+    auto expr = std::make_unique<PrefixExpr>(m_cur_tok, m_cur_tok.literal);
+
+    nextToken();
+
+    auto right_expr = parseExpr(PREFIX);
+    expr->setRight(std::move(right_expr));
+
+    return expr;
 }
 
 bool Parser::curTokenIs(token_type tok_type) {

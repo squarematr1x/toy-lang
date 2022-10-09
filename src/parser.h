@@ -23,10 +23,6 @@ class Parser {
 
     std::vector<std::string> m_errors;
 
-    // TODO: Maps may not be necessary, just use switch?
-    // std::map<token_type, int> m_prefix_parse_funcs;
-    // std::map<token_type, int> m_infix_parse_funcs; 
-
 public:
     Parser(const Lexer& lexer);
 
@@ -43,10 +39,8 @@ public:
     std::unique_ptr<Expr> parseExpr(int precedence);
     std::unique_ptr<Expr> parseIdentifier();
     std::unique_ptr<Expr> parseIntegerLiteral();
-    std::unique_ptr<Expr> prefixParseFunc();
-    std::unique_ptr<Expr> infixParseFunc(std::unique_ptr<Expr> expr);
+    std::unique_ptr<Expr> parsePrefixExpr();
     
-
     bool curTokenIs(token_type tok_type);
     bool peekTokenIs(token_type tok_type);
     bool expectPeek(token_type tok_type);
