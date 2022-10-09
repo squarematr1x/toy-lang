@@ -1,5 +1,7 @@
 #include "parser.h"
 
+#include <algorithm>
+
 Parser::Parser(const Lexer& lexer)
     : m_lexer(lexer) {
     nextToken();
@@ -43,7 +45,7 @@ std::unique_ptr<Statement> Parser::parseStatement() {
     case TOK_RETURN:
         return parseReturnStatement();
     default:
-        return nullptr;
+        return parseExprStatement();
     }
 }
 
@@ -80,6 +82,53 @@ std::unique_ptr<ReturnStatement> Parser::parseReturnStatement() {
     return statement;
 }
 
+std::unique_ptr<ExprStatement> Parser::parseExprStatement() {
+    auto statement = std::make_unique<ExprStatement>(m_cur_tok);
+
+    // statement.setExpr(parseExpression(LOWEST)); // or something...
+
+    if (peekTokenIs(TOK_SEMICOLON))
+        nextToken();
+
+    return statement;
+}
+
+std::unique_ptr<Expr> Parser::parseExpr(int precedence) {
+    std::unique_ptr<Expr> prefix = nullptr;
+
+    switch (m_cur_tok.type)
+    {
+    case TOK_IDENT:
+        prefix = parseIdentifier(); break;
+    case TOK_INT:
+        prefix = parseIntegerLiteral(); break;
+    default:
+        break;
+    }
+
+    return prefix;
+}
+
+std::unique_ptr<Expr> Parser::parseIdentifier() {
+    auto ident = std::make_unique<Identifier>(m_cur_tok, m_cur_tok.literal);
+
+    return ident;
+}
+
+std::unique_ptr<Expr> Parser::parseIntegerLiteral() {
+    auto int_lit = std::make_unique<IntegerLiteral>(m_cur_tok);
+
+    if (!isNumber(m_cur_tok)) {
+        const std::string error = "could not parse " + m_cur_tok.literal + " as integer";
+        m_errors.push_back(error);
+        return nullptr;
+    }
+
+    int_lit->setValue(stoi(m_cur_tok.literal));
+
+    return int_lit;
+}
+
 bool Parser::curTokenIs(token_type tok_type) {
     return m_cur_tok.type == tok_type;
 }
@@ -96,4 +145,11 @@ bool Parser::expectPeek(token_type tok_type) {
     peekError(tok_type);
 
     return false;
+}
+
+bool Parser::isNumber(Token tok) {
+    const std::string str = tok.literal;
+
+    return !str.empty() && std::find_if(str.begin(),
+        str.end(), [](unsigned char c) { return !std::isdigit(c); }) == str.end();
 }

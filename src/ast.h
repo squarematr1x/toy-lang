@@ -15,9 +15,9 @@ public:
     friend std::ostream& operator<< (std::ostream& out, Node& node);
 };
 
-class Expression: public Node {
+class Expr: public Node {
 public:
-    virtual ~Expression() = default;
+    virtual ~Expr() = default;
     virtual void expressionNode() const = 0;
 
     std::string toString() const override { return ""; }
@@ -45,7 +45,7 @@ public:
     std::unique_ptr<Statement> getStatement(unsigned int index);
 };
 
-class Identifier: public Expression {
+class Identifier: public Expr {
     Token m_tok;
     std::string m_value;
 
@@ -62,10 +62,24 @@ public:
     const std::string getValue() const { return m_value; }
 };
 
+class IntegerLiteral: public Expr {
+    Token m_tok;
+    int m_value;
+
+public:
+    IntegerLiteral(Token tok);
+
+    void expressionNode() const override {}
+    void setValue(int value) { m_value = value; }
+
+    std::string toString() const override { return m_tok.literal; }
+    const std::string tokenLiteral() const override { return m_tok.literal; }
+};
+
 class LetStatement: public Statement {
     Token m_tok;
     Identifier m_name;
-    std::unique_ptr<Expression> m_value;
+    std::unique_ptr<Expr> m_value;
 
 public:
     LetStatement(Token tok);
@@ -73,14 +87,14 @@ public:
     void statementNode() const override {}
     std::string toString() const override;
     void setName(const Identifier ident) { m_name = ident; }
-    void setValue(std::unique_ptr<Expression> expr) { m_value = std::move(expr); }
+    void setValue(std::unique_ptr<Expr> expr) { m_value = std::move(expr); }
 
     const std::string tokenLiteral() const override { return m_tok.literal; }
 };
 
 class ReturnStatement: public Statement {
     Token m_tok;
-    std::unique_ptr<Expression> m_expression;
+    std::unique_ptr<Expr> m_expr;
 
 public:
     ReturnStatement(Token tok);
@@ -90,11 +104,13 @@ public:
     const std::string tokenLiteral() const override { return m_tok.literal; }
 };
 
-class ExpressionStatement: public Statement {
+class ExprStatement: public Statement {
     Token m_tok;
-    std::unique_ptr<Expression> m_expression;
+    std::unique_ptr<Expr> m_expr;
 
 public:
+    ExprStatement(Token tok);
+
     void statementNode() const override {}
     std::string toString() const override;
 

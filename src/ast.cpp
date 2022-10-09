@@ -1,5 +1,6 @@
 #include "ast.h"
 
+// TODO: make it work also with pointer Nodes
 std::ostream& operator<< (std::ostream& out, Node& node) {
     out << node.toString();
     return out;
@@ -44,6 +45,9 @@ std::string Identifier::toString() const {
     return m_value;
 }
 
+IntegerLiteral::IntegerLiteral(Token tok)
+    : m_tok(tok) {
+}
 
 LetStatement::LetStatement(Token tok)
     : m_tok(tok) {
@@ -74,18 +78,21 @@ std::string ReturnStatement::toString() const {
     return_stmnt_str += tokenLiteral();
     return_stmnt_str += " ";
 
-    if (m_expression)
-        return_stmnt_str += m_expression->toString();
+    if (m_expr)
+        return_stmnt_str += m_expr->toString();
 
     return_stmnt_str += ";";
 
     return return_stmnt_str;
 }
 
+ExprStatement::ExprStatement(Token tok)
+    : m_tok(tok) {
+}
 
-std::string ExpressionStatement::toString() const {
-    if (m_expression)
-        return m_expression->toString();
+std::string ExprStatement::toString() const {
+    if (m_expr)
+        return m_expr->toString();
 
     return "";
 }
