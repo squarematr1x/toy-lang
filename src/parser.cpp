@@ -112,9 +112,24 @@ std::unique_ptr<Expr> Parser::parseExpr(int precedence) {
     if (!prefix) {
         const std::string error = "no prefix parse function for " + std::to_string(m_cur_tok.type) + " found";
         m_errors.push_back(error);
+
+        return nullptr;
     }
 
-    return prefix;
+    auto left_expr = std::move(prefix);
+
+    while (!peekTokenIs(TOK_SEMICOLON) && precedence < peekPrecedence()) {
+        std::unique_ptr<Expr> infix = nullptr;
+
+        if (!isInfix(m_peek_tok.type))
+            return left_expr;
+
+        nextToken();
+
+        left_expr = parseInfixExpr(std::move(left_expr));
+    }
+
+    return left_expr;
 }
 
 std::unique_ptr<Expr> Parser::parseIdentifier() {
@@ -149,6 +164,19 @@ std::unique_ptr<Expr> Parser::parsePrefixExpr() {
     return expr;
 }
 
+std::unique_ptr<Expr> Parser::parseInfixExpr(std::unique_ptr<Expr> left) {
+    auto infix_expr = std::make_unique<InfixExpr>(m_cur_tok, std::move(left), m_cur_tok.literal);
+
+    int precedence = curPrecedence();
+
+    nextToken();
+
+    auto right = parseExpr(precedence);
+    infix_expr->setRight(std::move(right));
+    
+    return infix_expr;
+}
+
 bool Parser::curTokenIs(token_type tok_type) {
     return m_cur_tok.type == tok_type;
 }
@@ -172,4 +200,52 @@ bool Parser::isNumber(Token tok) {
 
     return !str.empty() && std::find_if(str.begin(),
         str.end(), [](unsigned char c) { return !std::isdigit(c); }) == str.end();
+}
+
+bool Parser::isInfix(int tok_type) {
+    if (tok_type == TOK_EQ ||
+        tok_type == TOK_NOT_EQ ||
+        tok_type == TOK_PLUS ||
+        tok_type == TOK_MINUS ||
+        tok_type == TOK_MUL ||
+        tok_type == TOK_DIV ||
+        tok_type == TOK_LT ||
+        tok_type == TOK_GT
+    ) {
+        return true;
+    }
+
+    return false;
+}
+
+int Parser::getPrecedence(int tok_type) {
+    switch (tok_type)
+    {
+    case TOK_EQ:
+        return EQUALS;
+    case TOK_NOT_EQ:
+        return EQUALS;
+    case TOK_PLUS:
+        return SUM;
+    case TOK_MINUS:
+        return SUM;
+    case TOK_MUL:
+        return MUL;
+    case TOK_DIV:
+        return MUL;
+    case TOK_LT:
+        return LESSGREATER;
+    case TOK_GT:
+        return LESSGREATER;
+    default:
+        return LOWEST;
+    }
+}
+
+int Parser::peekPrecedence() {
+    return getPrecedence(m_peek_tok.type);
+}
+
+int Parser::curPrecedence() {
+    return getPrecedence(m_cur_tok.type);
 }

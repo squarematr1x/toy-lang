@@ -10,7 +10,7 @@ enum precedence {
     EQUALS,
     LESSGREATER,
     SUM,
-    PROD,
+    MUL,
     PREFIX,
     CALL
 };
@@ -40,9 +40,15 @@ public:
     std::unique_ptr<Expr> parseIdentifier();
     std::unique_ptr<Expr> parseIntegerLiteral();
     std::unique_ptr<Expr> parsePrefixExpr();
+    std::unique_ptr<Expr> parseInfixExpr(std::unique_ptr<Expr> left);
     
     bool curTokenIs(token_type tok_type);
     bool peekTokenIs(token_type tok_type);
     bool expectPeek(token_type tok_type);
     bool isNumber(Token tok);
+    bool isInfix(int tok_type);
+
+    int getPrecedence(int tok_type);
+    int peekPrecedence();
+    int curPrecedence();
 };

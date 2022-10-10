@@ -20,6 +20,9 @@ public:
     virtual ~Expr() = default;
     virtual void expressionNode() const = 0;
 
+    virtual std::unique_ptr<Expr> getLeft() = 0;
+    virtual std::unique_ptr<Expr> getRight() = 0;
+
     std::string toString() const override { return ""; }
 };
 
@@ -27,6 +30,8 @@ class Statement: public Node {
 public:
     virtual ~Statement() = default;
     virtual void statementNode() const = 0;
+
+    virtual std::unique_ptr<Expr> getExpr() = 0;
 
     std::string toString() const override { return ""; }
 };
@@ -42,11 +47,11 @@ public:
 
     int nStatements() const { return static_cast<int>(m_statements.size()); } 
     
-    std::unique_ptr<Statement> getStatement(unsigned int index);
+    std::unique_ptr<Statement> getStatementAt(unsigned int index);
 };
 
 class Identifier: public Expr {
-    Token m_tok;
+    Token m_tok; // Move this to parent?
     std::string m_value;
 
 public:
@@ -58,8 +63,10 @@ public:
 
     const std::string tokenLiteral() const override { return m_tok.literal; }
 
-    const Token getTok() const { return m_tok; }
     const std::string getValue() const { return m_value; }
+
+    std::unique_ptr<Expr> getLeft() override { return nullptr; }
+    std::unique_ptr<Expr> getRight() override { return nullptr; }
 };
 
 class IntegerLiteral: public Expr {
@@ -74,11 +81,14 @@ public:
 
     std::string toString() const override { return m_tok.literal; }
     const std::string tokenLiteral() const override { return m_tok.literal; }
+
+    std::unique_ptr<Expr> getLeft() override { return nullptr; }
+    std::unique_ptr<Expr> getRight() override { return nullptr; }
 };
 
 class PrefixExpr: public Expr {
     Token m_tok;
-    std::string m_operator;
+    std::string m_oprtr;
     std::unique_ptr<Expr> m_right;
 
 public:
@@ -89,6 +99,28 @@ public:
 
     std::string toString() const override;
     const std::string tokenLiteral() const override { return m_tok.literal; }
+
+    std::unique_ptr<Expr> getLeft() override { return nullptr; }
+    std::unique_ptr<Expr> getRight() override { return std::move(m_right); }
+};
+
+class InfixExpr: public Expr {
+    Token m_tok;
+    std::unique_ptr<Expr> m_left;
+    std::unique_ptr<Expr> m_right;
+    std::string m_oprtr;
+
+public:
+    InfixExpr(Token tok, std::unique_ptr<Expr> left, const std::string& oprtr);
+
+    void expressionNode() const override {}
+    void setRight(std::unique_ptr<Expr> right) { m_right = std::move(right); }
+
+    std::string toString() const override;
+    const std::string tokenLiteral() const override { return m_tok.literal; }
+
+    std::unique_ptr<Expr> getLeft() override { return std::move(m_left); }
+    std::unique_ptr<Expr> getRight() override { return std::move(m_right); }
 };
 
 class LetStatement: public Statement {
@@ -105,6 +137,8 @@ public:
     void setValue(std::unique_ptr<Expr> expr) { m_value = std::move(expr); }
 
     const std::string tokenLiteral() const override { return m_tok.literal; }
+
+    std::unique_ptr<Expr> getExpr() override { return nullptr; }
 };
 
 class ReturnStatement: public Statement {
@@ -117,6 +151,8 @@ public:
     void statementNode() const override {}
     std::string toString() const override;
     const std::string tokenLiteral() const override { return m_tok.literal; }
+
+    std::unique_ptr<Expr> getExpr() override { return nullptr; }
 };
 
 class ExprStatement: public Statement {
@@ -132,4 +168,6 @@ public:
     std::string toString() const override;
 
     const std::string tokenLiteral() const override { return m_tok.literal; }
+
+    std::unique_ptr<Expr> getExpr() override { return std::move(m_expr); }
 };

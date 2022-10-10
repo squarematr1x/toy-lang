@@ -25,7 +25,7 @@ std::string Program::toString() const  {
     return statement_str;
 }
 
-std::unique_ptr<Statement> Program::getStatement(unsigned int index) {
+std::unique_ptr<Statement> Program::getStatementAt(unsigned int index) {
     if (m_statements.size() == 0)
         return nullptr;
 
@@ -44,16 +44,30 @@ std::string Identifier::toString() const {
 }
 
 PrefixExpr::PrefixExpr(Token tok, const std::string& oprtr)
-    : m_tok(tok), m_operator(oprtr) {
+    : m_tok(tok), m_oprtr(oprtr) {
 }
 
 std::string PrefixExpr::toString() const {
     std::string prefix_str = "(";
-    prefix_str += m_operator;
+    prefix_str += m_oprtr;
     prefix_str += m_right->toString();
     prefix_str += ")";
 
     return prefix_str;
+}
+
+InfixExpr::InfixExpr(Token tok, std::unique_ptr<Expr> left, const std::string& oprtr)
+    : m_tok(tok), m_left(std::move(left)), m_oprtr(oprtr) {
+}
+
+std::string InfixExpr::toString() const {
+    std::string infix_str = "(";
+    infix_str += m_left->toString();
+    infix_str += " " + m_oprtr + " ";
+    infix_str += m_right->toString();
+    infix_str += ")";
+
+    return infix_str;
 }
 
 IntegerLiteral::IntegerLiteral(Token tok)
