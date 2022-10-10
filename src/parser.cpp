@@ -195,7 +195,7 @@ bool Parser::expectPeek(token_type tok_type) {
     return false;
 }
 
-bool Parser::isNumber(Token tok) {
+bool Parser::isNumber(const Token& tok) {
     const std::string str = tok.literal;
 
     return !str.empty() && std::find_if(str.begin(),

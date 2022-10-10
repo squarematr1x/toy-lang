@@ -45,7 +45,7 @@ public:
     bool curTokenIs(token_type tok_type);
     bool peekTokenIs(token_type tok_type);
     bool expectPeek(token_type tok_type);
-    bool isNumber(Token tok);
+    bool isNumber(const Token& tok);
     bool isInfix(int tok_type);
 
     int getPrecedence(int tok_type);

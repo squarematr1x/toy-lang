@@ -55,7 +55,7 @@ class Identifier: public Expr {
     std::string m_value;
 
 public:
-    Identifier(Token tok, const std::string& value);
+    Identifier(const Token& tok, const std::string& value);
     Identifier() = default;
 
     void expressionNode() const override {}
@@ -74,7 +74,7 @@ class IntegerLiteral: public Expr {
     int m_value;
 
 public:
-    IntegerLiteral(Token tok);
+    IntegerLiteral(const Token& tok);
 
     void expressionNode() const override {}
     void setValue(int value) { m_value = value; }
@@ -92,7 +92,7 @@ class PrefixExpr: public Expr {
     std::unique_ptr<Expr> m_right;
 
 public:
-    PrefixExpr(Token tok, const std::string& oprtr);
+    PrefixExpr(const Token& tok, const std::string& oprtr);
 
     void expressionNode() const override {}
     void setRight(std::unique_ptr<Expr> right) { m_right = std::move(right); }
@@ -111,7 +111,7 @@ class InfixExpr: public Expr {
     std::string m_oprtr;
 
 public:
-    InfixExpr(Token tok, std::unique_ptr<Expr> left, const std::string& oprtr);
+    InfixExpr(const Token& tok, std::unique_ptr<Expr> left, const std::string& oprtr);
 
     void expressionNode() const override {}
     void setRight(std::unique_ptr<Expr> right) { m_right = std::move(right); }
@@ -129,7 +129,7 @@ class LetStatement: public Statement {
     std::unique_ptr<Expr> m_value;
 
 public:
-    LetStatement(Token tok);
+    LetStatement(const Token& tok);
 
     void statementNode() const override {}
     std::string toString() const override;
@@ -146,7 +146,7 @@ class ReturnStatement: public Statement {
     std::unique_ptr<Expr> m_expr;
 
 public:
-    ReturnStatement(Token tok);
+    ReturnStatement(const Token& tok);
 
     void statementNode() const override {}
     std::string toString() const override;
@@ -160,7 +160,7 @@ class ExprStatement: public Statement {
     std::unique_ptr<Expr> m_expr;
 
 public:
-    ExprStatement(Token tok);
+    ExprStatement(const Token& tok);
 
     void statementNode() const override {}
     void setExpr(std::unique_ptr<Expr> expr) { m_expr = std::move(expr); }

@@ -35,7 +35,7 @@ std::unique_ptr<Statement> Program::getStatementAt(unsigned int index) {
     return std::move(m_statements[index]);
 }
 
-Identifier::Identifier(Token tok, const std::string& value) 
+Identifier::Identifier(const Token& tok, const std::string& value) 
     : m_tok(tok), m_value(value) {
 }
 
@@ -43,7 +43,7 @@ std::string Identifier::toString() const {
     return m_value;
 }
 
-PrefixExpr::PrefixExpr(Token tok, const std::string& oprtr)
+PrefixExpr::PrefixExpr(const Token& tok, const std::string& oprtr)
     : m_tok(tok), m_oprtr(oprtr) {
 }
 
@@ -56,7 +56,7 @@ std::string PrefixExpr::toString() const {
     return prefix_str;
 }
 
-InfixExpr::InfixExpr(Token tok, std::unique_ptr<Expr> left, const std::string& oprtr)
+InfixExpr::InfixExpr(const Token& tok, std::unique_ptr<Expr> left, const std::string& oprtr)
     : m_tok(tok), m_left(std::move(left)), m_oprtr(oprtr) {
 }
 
@@ -70,11 +70,11 @@ std::string InfixExpr::toString() const {
     return infix_str;
 }
 
-IntegerLiteral::IntegerLiteral(Token tok)
+IntegerLiteral::IntegerLiteral(const Token& tok)
     : m_tok(tok) {
 }
 
-LetStatement::LetStatement(Token tok)
+LetStatement::LetStatement(const Token& tok)
     : m_tok(tok) {
 }
 
@@ -92,7 +92,7 @@ std::string LetStatement::toString() const {
     return let_stmnt_str;
 }
 
-ReturnStatement::ReturnStatement(Token tok)
+ReturnStatement::ReturnStatement(const Token& tok)
     :m_tok(tok) {
 }
 
@@ -110,7 +110,7 @@ std::string ReturnStatement::toString() const {
     return return_stmnt_str;
 }
 
-ExprStatement::ExprStatement(Token tok)
+ExprStatement::ExprStatement(const Token& tok)
     : m_tok(tok) {
 }
 
