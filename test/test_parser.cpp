@@ -13,20 +13,13 @@ void checkParseErrors(const Parser& parser) {
         std::cout << "Parser error " << error << '\n';
 }
 
-// Helper struct
-struct PrefixTests {
-    std::string input;
-    std::string oprtr;
-    int value;
-};
-
 TEST(ParserTest, TestLetStatements) {
     const std::string input = "let x = 9; let y = 104; let foo = 37;";
 
     Lexer lexer(input);
     Parser parser(lexer);
 
-    auto program = parser.parseProgram();
+    const auto program = parser.parseProgram();
     const unsigned int n_statements = program->nStatements();
 
     EXPECT_TRUE(program != nullptr);
@@ -39,7 +32,7 @@ TEST(ParserTest, TestLetStatements) {
     };
 
     for (unsigned int i = 0; i < n_statements; i++) {
-        auto statement = program->getStatement(i);
+        auto statement = program->getStatementAt(i);
         EXPECT_EQ(statement->tokenLiteral(), "let");
     }
 
@@ -52,7 +45,7 @@ TEST(ParserTest, TestReturnStatements) {
     Lexer lexer(input);
     Parser parser(lexer);
 
-    auto program = parser.parseProgram();
+    const auto program = parser.parseProgram();
     const unsigned int n_statements = program->nStatements();
 
     checkParseErrors(parser);
@@ -61,7 +54,7 @@ TEST(ParserTest, TestReturnStatements) {
     EXPECT_EQ(n_statements, 4);
 
     for (unsigned int i = 0; i < n_statements; i++) {
-        auto statement = program->getStatement(i);
+        auto statement = program->getStatementAt(i);
         EXPECT_EQ(statement->tokenLiteral(), "return");
     }
 }
@@ -90,36 +83,41 @@ TEST(ParserTest, TestIdentifierExpr) {
     Lexer lexer(input);
     Parser parser(lexer);
 
-    auto program = parser.parseProgram();
+    const auto program = parser.parseProgram();
     checkParseErrors(parser);
     const unsigned int n_statements = program->nStatements();
 
     EXPECT_EQ(n_statements, 1);
 
-    auto ident = program->getStatement(0);
+    const auto ident = program->getStatementAt(0);
     
     EXPECT_EQ(ident->tokenLiteral(), "foobar");
 }
 
-// TODO: check m_value here also (write methods...)
 TEST(ParserTest, TestIntegerLiteralExpr) {
     const std::string input = "8";
     Lexer lexer(input);
     Parser parser(lexer);
 
-    auto program = parser.parseProgram();
+    const auto program = parser.parseProgram();
     checkParseErrors(parser);
     const unsigned int n_statements = program->nStatements();
 
     EXPECT_EQ(n_statements, 1);
 
-    auto integer = program->getStatement(0);
+    const auto integer = program->getStatementAt(0);
     
     EXPECT_EQ(integer->tokenLiteral(), "8");
 }
 
 TEST(ParserTest, TestParsingPrefixExpr) {
-    const std::vector<PrefixTests> tests = {
+    struct PrefixTest {
+        std::string input;
+        std::string oprtr;
+        int value;
+    };
+
+    const std::vector<PrefixTest> tests = {
         {"!3", "!", 3},
         {"-66", "-", 66}
     };
@@ -128,13 +126,53 @@ TEST(ParserTest, TestParsingPrefixExpr) {
         Lexer lexer(test.input);
         Parser parser(lexer);
 
-        auto program = parser.parseProgram();
+        const auto program = parser.parseProgram();
         checkParseErrors(parser);
         const unsigned int n_statements = program->nStatements();
 
         EXPECT_EQ(n_statements, 1);
 
-        EXPECT_EQ(program->getStatement(0)->tokenLiteral(), test.oprtr);
-        // TODO: statement->getExpr()->getRight...
+        const auto statement = program->getStatementAt(0);
+        const int num_value = stoi(statement->getExpr()->getRight()->tokenLiteral());
+
+        EXPECT_EQ(statement->tokenLiteral(), test.oprtr);
+        EXPECT_EQ(num_value, test.value);
+    }
+}
+
+TEST(ParserTest, TestParsingInfixExpr) {
+    struct InfixTest {
+        std::string input;
+        int left_val;
+        std::string oprtr;
+        int right_val;
+    };
+
+    std::vector<InfixTest> tests = {
+        {"1 + 2", 1, "+", 2},
+        {"3 - 4", 3, "-", 4},
+        {"9 * 5", 9, "*", 5},
+        {"5 / 5", 5, "/", 5},
+        {"1 > 2", 1, ">", 2},
+        {"3 < 2", 3, "<", 2},
+        {"1 == 2", 1, "==", 2},
+        {"7 != 8", 7, "!=", 8},
+    };
+
+    for (const auto& test : tests) {
+        Lexer lexer(test.input);
+        Parser parser(lexer);
+
+        const auto program = parser.parseProgram();
+        checkParseErrors(parser);
+        const unsigned int n_statements = program->nStatements();
+
+        EXPECT_EQ(n_statements, 1);
+
+        const auto expr = program->getStatementAt(0)->getExpr();
+
+        EXPECT_EQ(stoi(expr->getLeft()->tokenLiteral()), test.left_val);
+        EXPECT_EQ(stoi(expr->getRight()->tokenLiteral()), test.right_val);
+        EXPECT_EQ(expr->tokenLiteral(), test.oprtr);
     }
 }

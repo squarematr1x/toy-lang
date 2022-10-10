@@ -58,9 +58,10 @@ bool Lexer::isLetter(char c) {
 
 Token Lexer::nextToken() {
     Token tok;
-    std::string literal = std::string(1, m_char);
 
     skipWhitespace();
+
+    std::string literal = std::string(1, m_char);
 
     switch (m_char) {
         case '=':
