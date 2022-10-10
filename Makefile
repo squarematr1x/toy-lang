@@ -38,7 +38,7 @@ $(APP_TEST_DIR)/$(TARGET): $(TEST_OBJECTS)
 
 -include $(DEPENDENCIES)
 
-.PHONY: all build run clean test run-tests debug release info
+.PHONY: all build run run-with-memory-check clean test run-tests debug release info
 
 build:
 	@mkdir -p $(APP_DIR)
@@ -46,6 +46,9 @@ build:
 
 run: all
 	./$(APP_DIR)/$(TARGET)
+
+run-with-memory-check: all
+	valgrind --leak-check=full -v ./$(APP_DIR)/$(TARGET)
 
 test: build $(APP_TEST_DIR)/$(TARGET)
 
