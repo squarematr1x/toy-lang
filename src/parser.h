@@ -39,9 +39,14 @@ public:
     std::unique_ptr<Expr> parseExpr(int precedence);
     std::unique_ptr<Expr> parseIdentifier();
     std::unique_ptr<Expr> parseIntegerLiteral();
+    std::unique_ptr<Expr> parseBoolean();
     std::unique_ptr<Expr> parsePrefixExpr();
     std::unique_ptr<Expr> parseInfixExpr(std::unique_ptr<Expr> left);
+    std::unique_ptr<Expr> parseGroupedExpr();
+    std::unique_ptr<Expr> parseIfExpr();
     
+    std::unique_ptr<BlockStatement> parseBlockStatement();
+
     bool curTokenIs(token_type tok_type);
     bool peekTokenIs(token_type tok_type);
     bool expectPeek(token_type tok_type);

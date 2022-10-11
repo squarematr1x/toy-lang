@@ -93,34 +93,40 @@ std::unique_ptr<ExprStatement> Parser::parseExprStatement() {
 }
 
 std::unique_ptr<Expr> Parser::parseExpr(int precedence) {
-    std::unique_ptr<Expr> prefix = nullptr;
+    std::unique_ptr<Expr> expr = nullptr;
 
     switch (m_cur_tok.type)
     {
     case TOK_IDENT:
-        prefix = parseIdentifier(); break;
+        expr = parseIdentifier(); break;
     case TOK_INT:
-        prefix = parseIntegerLiteral(); break;
+        expr = parseIntegerLiteral(); break;
+    case TOK_TRUE:
+        expr = parseBoolean(); break;
+    case TOK_FALSE:
+        expr = parseBoolean(); break;
     case TOK_MINUS:
-        prefix = parsePrefixExpr(); break;
+        expr = parsePrefixExpr(); break;
     case TOK_BANG:
-        prefix = parsePrefixExpr(); break;
+        expr = parsePrefixExpr(); break;
+    case TOK_LPAREN:
+        expr = parseGroupedExpr(); break;
+    case TOK_IF:
+        expr = parseIfExpr(); break;
     default:
         break;
     }
 
-    if (!prefix) {
+    if (!expr) {
         const std::string error = "no prefix parse function for " + std::to_string(m_cur_tok.type) + " found";
         m_errors.push_back(error);
 
         return nullptr;
     }
 
-    auto left_expr = std::move(prefix);
+    auto left_expr = std::move(expr);
 
     while (!peekTokenIs(TOK_SEMICOLON) && precedence < peekPrecedence()) {
-        std::unique_ptr<Expr> infix = nullptr;
-
         if (!isInfix(m_peek_tok.type))
             return left_expr;
 
@@ -152,6 +158,9 @@ std::unique_ptr<Expr> Parser::parseIntegerLiteral() {
     return int_lit;
 }
 
+std::unique_ptr<Expr> Parser::parseBoolean() {
+    return std::make_unique<Boolean>(m_cur_tok, curTokenIs(TOK_TRUE));
+}
 
 std::unique_ptr<Expr> Parser::parsePrefixExpr() {
     auto expr = std::make_unique<PrefixExpr>(m_cur_tok, m_cur_tok.literal);
@@ -167,7 +176,7 @@ std::unique_ptr<Expr> Parser::parsePrefixExpr() {
 std::unique_ptr<Expr> Parser::parseInfixExpr(std::unique_ptr<Expr> left) {
     auto infix_expr = std::make_unique<InfixExpr>(m_cur_tok, std::move(left), m_cur_tok.literal);
 
-    int precedence = curPrecedence();
+    const int precedence = curPrecedence();
 
     nextToken();
 
@@ -175,6 +184,63 @@ std::unique_ptr<Expr> Parser::parseInfixExpr(std::unique_ptr<Expr> left) {
     infix_expr->setRight(std::move(right));
     
     return infix_expr;
+}
+
+std::unique_ptr<Expr> Parser::parseGroupedExpr() {
+    nextToken();
+
+    auto expr = parseExpr(LOWEST);
+
+    if (!expectPeek(TOK_RPAREN))
+        return nullptr;
+
+    return expr;
+}
+
+std::unique_ptr<Expr> Parser::parseIfExpr() {
+    auto expr = std::make_unique<IfExpr>(m_cur_tok);
+
+    if (!expectPeek(TOK_LPAREN))
+        return nullptr;
+
+    nextToken();
+    expr->setCondition(parseExpr(LOWEST));
+
+    if (!expectPeek(TOK_RPAREN))
+        return nullptr;
+    
+    if (!expectPeek(TOK_LBRACE))
+        return nullptr;
+
+    expr->setConsequence(parseBlockStatement());
+
+    if (peekTokenIs(TOK_ELSE)) {
+        nextToken();
+
+        if (!expectPeek(TOK_LBRACE))
+            return nullptr;
+
+        expr->setAlternative(parseBlockStatement());
+    }
+
+    return expr;
+}
+
+std::unique_ptr<BlockStatement> Parser::parseBlockStatement() {
+    auto block = std::make_unique<BlockStatement>(m_cur_tok);
+
+    nextToken();
+
+    while (!curTokenIs(TOK_RBRACE) && !curTokenIs(TOK_EOF)) {
+        auto statement = parseStatement();
+
+        if (statement)
+            block->pushStatement(std::move(statement));
+        
+        nextToken();
+    }
+
+    return block;
 }
 
 bool Parser::curTokenIs(token_type tok_type) {

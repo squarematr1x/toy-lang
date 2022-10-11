@@ -70,8 +70,27 @@ std::string InfixExpr::toString() const {
     return infix_str;
 }
 
+IfExpr::IfExpr(Token tok)
+    : m_tok(tok) {
+}
+
+std::string IfExpr::toString() const {
+    std::string if_str = "if " + m_condition->toString() + " " + m_consequence->toString();
+
+    if (m_alternative) {
+        if_str += "else ";
+        if_str += m_alternative->toString();
+    }
+    
+    return if_str;
+}
+
 IntegerLiteral::IntegerLiteral(const Token& tok)
     : m_tok(tok) {
+}
+
+Boolean::Boolean(const Token& tok, bool value)
+    : m_tok(tok), m_value(value) {
 }
 
 LetStatement::LetStatement(const Token& tok)
@@ -119,4 +138,20 @@ std::string ExprStatement::toString() const {
         return m_expr->toString();
 
     return "";
+}
+
+BlockStatement::BlockStatement(const Token& tok)
+    : m_tok(tok) {
+}
+
+void BlockStatement::pushStatement(std::unique_ptr<Statement> statement) {
+    m_statements.push_back(std::move(statement));
+}
+
+std::string BlockStatement::toString() const {
+    std::string out;
+    for (const auto& statement: m_statements)
+        out += statement->toString();
+    
+    return out;
 }
