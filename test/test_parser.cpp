@@ -205,7 +205,10 @@ TEST(ParserTest, TestOperatorPrecedenceParsing) {
         {"(8 + 8) * 2", "((8 + 8) * 2)"},
         {"2 / (1 + 3)", "(2 / (1 + 3))"},
         {"-(7 + 6)", "(-(7 + 6))"},
-        {"!(true == true)", "(!(true == true))"}
+        {"!(true == true)", "(!(true == true))"},
+        {"a + add(b * c) + d", "((a + add((b * c))) + d)"},
+        {"foo(a, b, 4, x*y, bar(x, y))", "foo(a, b, 4, (x * y), bar(x, y))"},
+        {"test(a + b + c * d / f + g)", "test((((a + b) + ((c * d) / f)) + g))"}
     };
     
     for (const auto& test: tests) {
@@ -255,4 +258,123 @@ TEST(ParserTest, TestIfElseExpr) {
     EXPECT_EQ(expr->getCondition()->toString(), "(x > u)");
     EXPECT_EQ(expr->getConsequence()->getStatementAt(0)->tokenLiteral(), "x");
     EXPECT_EQ(expr->getAlternative()->toString(), "y");
+}
+
+TEST(ParserTest, TestFuncLiteralParsing) {
+    const std::string input = "func(x, foo) { x + foo; }";
+
+    Lexer lexer(input);
+    Parser parser(lexer);
+
+    auto program = parser.parseProgram();
+    checkParseErrors(parser);
+    const unsigned int n_statements = program->nStatements();
+
+    EXPECT_EQ(n_statements, 1);
+
+    auto function = program->getStatementAt(0)->getExpr();
+
+    EXPECT_EQ(function->getParams().size(), 2);
+
+    EXPECT_EQ(function->getParams()[0].tokenLiteral(), "x");
+    EXPECT_EQ(function->getParams()[1].tokenLiteral(), "foo");
+
+    EXPECT_EQ(function->getBody()->getStatementAt(0)->toString(), "(x + foo)");
+}
+
+TEST(ParserTest, TestFuncParameterParsing) {
+    struct ParamTest {
+        std::string input;
+        std::vector<std::string> expected_params;
+    };
+
+    const std::vector<ParamTest> tests = {
+        {"func(x) {}", {"x"}},
+        {"func(test, a, b) {}", {"test", "a", "b"}},
+        {"func(x,y,  z, j) {}", {"x", "y", "z", "j"}}
+    };
+
+    for (auto const& test : tests) {
+        Lexer lexer(test.input);
+        Parser parser(lexer);
+
+        auto program = parser.parseProgram();
+        checkParseErrors(parser);
+
+        auto function = program->getStatementAt(0)->getExpr();
+
+        EXPECT_EQ(function->getParams().size(), test.expected_params.size());
+
+        const unsigned int n = test.expected_params.size();
+        for (unsigned int i = 0; i <  n; i++)
+            EXPECT_EQ(function->getParams()[i].tokenLiteral(), test.expected_params[i]);
+    }
+}
+
+TEST(ParserTest, TestFuncEmptyParameterParsing) {
+    const std::string input = "func() {}";
+
+    Lexer lexer(input);
+    Parser parser(lexer);
+
+    auto program = parser.parseProgram();
+    checkParseErrors(parser);
+
+    auto function = program->getStatementAt(0)->getExpr();
+
+    EXPECT_EQ(function->getParams().size(), 0);
+}
+
+TEST(ParserTest, TestCallExprParsing) {
+    const std::string input = "testFunc(1, 2 * 3, 5 + 7);";
+
+    Lexer lexer(input);
+    Parser parser(lexer);
+
+    auto program = parser.parseProgram();
+    checkParseErrors(parser);
+    const unsigned int n_statements = program->nStatements();
+
+    EXPECT_EQ(n_statements, 1);
+    
+    auto call_expr = program->getStatementAt(0)->getExpr();
+
+    EXPECT_EQ(call_expr->getFunc()->tokenLiteral(), "testFunc");
+
+    const unsigned int n = call_expr->getArgSize();
+    EXPECT_EQ(n, 3);
+
+    EXPECT_EQ(call_expr->getArgAt(0)->tokenLiteral(), "1");
+    EXPECT_EQ(call_expr->getArgAt(1)->toString(), "(2 * 3)");
+    EXPECT_EQ(call_expr->getArgAt(2)->toString(), "(5 + 7)");
+}
+
+TEST(ParserTest, TestCallExprParameterParsing) {
+    struct ParamTest {
+        std::string input;
+        std::vector<std::string> expected_params;
+    };
+
+    const std::vector<ParamTest> tests = {
+        {"test(x)", {"x"}},
+        {"foo(test, a, b)", {"test", "a", "b"}},
+        {"add(x, y, 3*7, j)", {"x", "y", "(3 * 7)", "j"}}
+    };
+
+    for (auto const& test : tests) {
+        Lexer lexer(test.input);
+        Parser parser(lexer);
+
+        auto program = parser.parseProgram();
+        checkParseErrors(parser);
+
+        auto call_expr = program->getStatementAt(0)->getExpr();
+
+        EXPECT_EQ(call_expr->getArgSize(), test.expected_params.size());
+
+        const unsigned int n = test.expected_params.size();
+        for (unsigned int i = 0; i <  n; i++)
+            EXPECT_EQ(call_expr->getArgAt(i)->toString(), test.expected_params[i]);
+    }
+    
 }
