@@ -6,6 +6,7 @@
 
 #include "token.h"
 
+class Identifier;
 class BlockStatement;
 
 class Node {
@@ -25,8 +26,16 @@ public:
     virtual std::unique_ptr<Expr> getLeft() { return nullptr; }
     virtual std::unique_ptr<Expr> getRight() { return nullptr; }
     virtual std::unique_ptr<Expr> getCondition() { return nullptr; }
+    virtual std::unique_ptr<Expr> getFunc() { return nullptr; }
+    virtual std::unique_ptr<Expr> getArgAt(unsigned int index) { (void)index; return nullptr;}
+
     virtual std::unique_ptr<BlockStatement> getConsequence() { return nullptr; }
     virtual std::unique_ptr<BlockStatement> getAlternative() { return nullptr; }
+    virtual std::unique_ptr<BlockStatement> getBody() { return nullptr; }
+
+    virtual std::vector<Identifier> getParams() const { return {}; }
+    
+    virtual size_t getArgSize() const { return 0; }
 };
 
 class Statement: public Node {
@@ -151,6 +160,46 @@ public:
     std::unique_ptr<Expr> getCondition() override { return std::move(m_condition); }
     std::unique_ptr<BlockStatement> getConsequence() override { return std::move(m_consequence); }
     std::unique_ptr<BlockStatement> getAlternative() override { return std::move(m_alternative); }
+};
+
+class FuncLiteral: public Expr {
+    Token m_tok;
+    std::vector<Identifier> m_params;
+    std::unique_ptr<BlockStatement> m_body;
+
+public:
+    FuncLiteral(const Token& tok);
+
+    void expressionNode() const override {}
+    void setParams(const std::vector<Identifier>& params) { m_params = params; }
+    void setBody(std::unique_ptr<BlockStatement> body) { m_body = std::move(body); }
+
+    std::string toString() const override;
+    const std::string tokenLiteral() const override { return m_tok.literal; }
+
+    std::unique_ptr<BlockStatement> getBody() override { return std::move(m_body); }
+
+    std::vector<Identifier> getParams() const override { return m_params; }
+};
+
+class CallExpr: public Expr {
+    Token m_tok;
+    std::unique_ptr<Expr> m_func;
+    std::vector<std::unique_ptr<Expr>> m_args;
+
+public:
+    CallExpr(const Token& tok, std::unique_ptr<Expr> func);
+    void expressionNode() const override {}
+    void setArgs(std::vector<std::unique_ptr<Expr>> args) { m_args = std::move(args); }
+
+    std::string toString() const override;
+    const std::string tokenLiteral() const override { return m_tok.literal; }
+
+    std::unique_ptr<Expr> getFunc() override { return std::move(m_func); }
+
+    size_t getArgSize() const override { return m_args.size(); }
+
+    std::unique_ptr<Expr> getArgAt(unsigned int index) override;
 };
 
 class LetStatement: public Statement {

@@ -113,6 +113,8 @@ std::unique_ptr<Expr> Parser::parseExpr(int precedence) {
         expr = parseGroupedExpr(); break;
     case TOK_IF:
         expr = parseIfExpr(); break;
+    case TOK_FUNC:
+        expr = parseFuncLiteral(); break;
     default:
         break;
     }
@@ -132,7 +134,10 @@ std::unique_ptr<Expr> Parser::parseExpr(int precedence) {
 
         nextToken();
 
-        left_expr = parseInfixExpr(std::move(left_expr));
+        if (m_cur_tok.type == TOK_LPAREN)
+            left_expr = parseCallExpr(std::move(left_expr));
+        else
+            left_expr = parseInfixExpr(std::move(left_expr));
     }
 
     return left_expr;
@@ -226,6 +231,29 @@ std::unique_ptr<Expr> Parser::parseIfExpr() {
     return expr;
 }
 
+std::unique_ptr<Expr> Parser::parseFuncLiteral() {
+    auto func_literal = std::make_unique<FuncLiteral>(m_cur_tok);
+
+    if (!expectPeek(TOK_LPAREN))
+        return nullptr;
+    
+    func_literal->setParams(parseFuncParameters());
+
+    if (!expectPeek(TOK_LBRACE))
+        return nullptr;
+    
+    func_literal->setBody(parseBlockStatement());
+
+    return func_literal;
+}
+
+std::unique_ptr<Expr> Parser::parseCallExpr(std::unique_ptr<Expr> func) {
+    auto call_expr = std::make_unique<CallExpr>(m_cur_tok, std::move(func));
+    call_expr->setArgs(parseCallArgs());
+
+    return call_expr;
+}
+
 std::unique_ptr<BlockStatement> Parser::parseBlockStatement() {
     auto block = std::make_unique<BlockStatement>(m_cur_tok);
 
@@ -241,6 +269,55 @@ std::unique_ptr<BlockStatement> Parser::parseBlockStatement() {
     }
 
     return block;
+}
+
+std::vector<Identifier> Parser::parseFuncParameters() {
+    std::vector<Identifier> params;
+
+    if (peekTokenIs(TOK_RPAREN)) {
+        nextToken();
+        return params;
+    }
+
+    nextToken();
+
+    params.push_back(Identifier(m_cur_tok, m_cur_tok.literal));
+
+    while (peekTokenIs(TOK_COMMA)) {
+        nextToken();
+        nextToken();
+
+        params.push_back(Identifier(m_cur_tok, m_cur_tok.literal));
+    }
+
+    if (!expectPeek(TOK_RPAREN))
+        return {};
+    
+    return params;
+}
+
+std::vector<std::unique_ptr<Expr>> Parser::parseCallArgs() {
+    std::vector<std::unique_ptr<Expr>> args;
+
+    if (peekTokenIs(TOK_RPAREN)) {
+        nextToken();
+        return args;
+    }
+
+    nextToken();
+    args.push_back(parseExpr(LOWEST));
+
+    while (peekTokenIs(TOK_COMMA)) {
+        nextToken();
+        nextToken();
+
+        args.push_back(parseExpr(LOWEST));
+    }
+
+    if (!expectPeek(TOK_RPAREN))
+        return {};
+    
+    return args;
 }
 
 bool Parser::curTokenIs(token_type tok_type) {
@@ -276,7 +353,8 @@ bool Parser::isInfix(int tok_type) {
         tok_type == TOK_MUL ||
         tok_type == TOK_DIV ||
         tok_type == TOK_LT ||
-        tok_type == TOK_GT
+        tok_type == TOK_GT ||
+        tok_type == TOK_LPAREN
     ) {
         return true;
     }
@@ -303,6 +381,8 @@ int Parser::getPrecedence(int tok_type) {
         return LESSGREATER;
     case TOK_GT:
         return LESSGREATER;
+    case TOK_LPAREN:
+        return CALL;
     default:
         return LOWEST;
     }

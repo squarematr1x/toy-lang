@@ -44,8 +44,13 @@ public:
     std::unique_ptr<Expr> parseInfixExpr(std::unique_ptr<Expr> left);
     std::unique_ptr<Expr> parseGroupedExpr();
     std::unique_ptr<Expr> parseIfExpr();
-    
+    std::unique_ptr<Expr> parseFuncLiteral();
+    std::unique_ptr<Expr> parseCallExpr(std::unique_ptr<Expr> func);
+
     std::unique_ptr<BlockStatement> parseBlockStatement();
+
+    std::vector<Identifier> parseFuncParameters();
+    std::vector<std::unique_ptr<Expr>> parseCallArgs();
 
     bool curTokenIs(token_type tok_type);
     bool peekTokenIs(token_type tok_type);

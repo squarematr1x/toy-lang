@@ -85,6 +85,55 @@ std::string IfExpr::toString() const {
     return if_str;
 }
 
+FuncLiteral::FuncLiteral(const Token& tok)
+    : m_tok(tok) {
+}
+
+std::string FuncLiteral::toString() const {
+    std::string func_literal_str = m_tok.literal + "(";
+
+    for (const auto& param : m_params)
+        func_literal_str += param.toString();
+    
+    func_literal_str += ") ";
+    func_literal_str += m_body->toString();
+
+    return func_literal_str;
+}
+
+CallExpr::CallExpr(const Token& tok, std::unique_ptr<Expr> func)
+    : m_tok(tok), m_func(std::move(func)) {
+}
+
+std::string CallExpr::toString() const {
+    std::string call_str;
+
+    call_str += m_func->toString();
+    call_str += "(";
+
+    const unsigned int n = m_args.size();
+    for (unsigned int i = 0; i < n; i++) {
+        call_str += m_args[i]->toString();
+
+        if (i < n - 1)
+            call_str += ", ";
+    }
+    
+    call_str += ")";
+
+    return call_str;
+}
+
+std::unique_ptr<Expr> CallExpr::getArgAt(unsigned int index) {
+    if (m_args.size() == 0)
+        return nullptr;
+
+    if (index >= static_cast<unsigned int>(m_args.size()))
+        return nullptr;
+
+    return std::move(m_args[index]);
+}
+
 IntegerLiteral::IntegerLiteral(const Token& tok)
     : m_tok(tok) {
 }
