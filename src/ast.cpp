@@ -155,3 +155,13 @@ std::string BlockStatement::toString() const {
     
     return out;
 }
+
+std::unique_ptr<Statement> BlockStatement::getStatementAt(unsigned int index) {
+    if (m_statements.size() == 0)
+        return nullptr;
+
+    if (index >= static_cast<unsigned int>(m_statements.size()))
+        return nullptr;
+
+    return std::move(m_statements[index]);
+}
