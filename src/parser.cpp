@@ -62,8 +62,11 @@ std::unique_ptr<LetStatement> Parser::parseLetStatement() {
     if (!expectPeek(TOK_ASSIGN))
         return nullptr;
 
-    // Skipping the expressions until we encounter a semicolon
-    while (!curTokenIs(TOK_SEMICOLON))
+    nextToken();
+
+    statement->setValue(parseExpr(LOWEST));
+
+    while (peekTokenIs(TOK_SEMICOLON))
         nextToken();
 
     return statement;
@@ -74,8 +77,9 @@ std::unique_ptr<ReturnStatement> Parser::parseReturnStatement() {
 
     nextToken();
 
-    // Skipping the expressions until we encounter a semicolon
-    while (!curTokenIs(TOK_SEMICOLON))
+    statement->setValue(parseExpr(LOWEST));
+
+    while (peekTokenIs(TOK_SEMICOLON))
         nextToken();
 
     return statement;

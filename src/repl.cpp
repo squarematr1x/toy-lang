@@ -1,5 +1,6 @@
 #include "repl.h"
 #include "lexer.h"
+#include "parser.h"
 
 #include <iostream>
 #include <string>
@@ -16,16 +17,21 @@ void start() {
             break;
         
         Lexer lexer(line);
+        Parser parser(lexer);
+        auto program = parser.parseProgram();
 
-        while (true) {
-            Token tok = lexer.nextToken();
-
-            if (tok.type == TOK_EOF) 
-                break;
-
-            std::cout << tok.type << " : " << tok.literal << '\n';
+        if (parser.errors().size() != 0) {
+            printParsingErrors(parser.errors());
+            break;
         }
+
+        std::cout << program->toString() << '\n';
     }
+}
+
+void printParsingErrors(std::vector<std::string> errors) {
+    for (const auto& error : errors)
+        std::cout << '\t' << error << '\n';
 }
 
 } // repl

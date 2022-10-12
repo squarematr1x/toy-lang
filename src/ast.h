@@ -220,12 +220,14 @@ public:
 
 class ReturnStatement: public Statement {
     Token m_tok;
-    std::unique_ptr<Expr> m_expr;
+    std::unique_ptr<Expr> m_value;
 
 public:
     ReturnStatement(const Token& tok);
 
     void statementNode() const override {}
+    void setValue(std::unique_ptr<Expr> expr) { m_value = std::move(expr); }
+    
     std::string toString() const override;
     const std::string tokenLiteral() const override { return m_tok.literal; }
 };

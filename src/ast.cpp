@@ -170,8 +170,8 @@ std::string ReturnStatement::toString() const {
     return_stmnt_str += tokenLiteral();
     return_stmnt_str += " ";
 
-    if (m_expr)
-        return_stmnt_str += m_expr->toString();
+    if (m_value)
+        return_stmnt_str += m_value->toString();
 
     return_stmnt_str += ";";
 
