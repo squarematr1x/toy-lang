@@ -78,6 +78,7 @@ TEST(ParserTest, TestToString) {
     EXPECT_EQ(program->toString(), expected_str);
 }
 
+// TODO: Add tests for Boolean and implement getValue<T>()
 TEST(ParserTest, TestIdentifierExpr) {
     const std::string input = "foobar";
     Lexer lexer(input);
@@ -148,7 +149,7 @@ TEST(ParserTest, TestParsingInfixExpr) {
         int right_val;
     };
 
-    std::vector<InfixTest> tests = {
+    const std::vector<InfixTest> tests = {
         {"1 + 2", 1, "+", 2},
         {"3 - 4", 3, "-", 4},
         {"9 * 5", 9, "*", 5},
@@ -175,4 +176,83 @@ TEST(ParserTest, TestParsingInfixExpr) {
         EXPECT_EQ(stoi(expr->getRight()->tokenLiteral()), test.right_val);
         EXPECT_EQ(expr->tokenLiteral(), test.oprtr);
     }
+}
+
+TEST(ParserTest, TestOperatorPrecedenceParsing) {
+    struct test {
+        std::string input;
+        std::string expected;
+    };
+
+    const std::vector<test> tests = {
+        {"-a * b", "((-a) * b)"},
+        {"!-a", "(!(-a))"},
+        {"a + b + c", "((a + b) + c)"},
+        {"a + b - c", "((a + b) - c)"},
+        {"a * b * c", "((a * b) * c)"},
+        {"a * b / c", "((a * b) / c)"},
+        {"a + b / c", "(a + (b / c))"},
+        {"a + b * c + d / e - f", "(((a + (b * c)) + (d / e)) - f)"},
+        {"3 + 4; -5 * 5", "(3 + 4)((-5) * 5)"},
+        {"5 > 4 == 3 < 4", "((5 > 4) == (3 < 4))"},
+        {"5 < 4 != 3 < 4", "((5 < 4) != (3 < 4))"},
+        {"3 + 4 * 5 == 3 * 1 + 4 * 5", "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))"},
+        {"true", "true"},
+        {"false", "false"},
+        {"1 > 2 == false", "((1 > 2) == false)"},
+        {"1 < 5 == true", "((1 < 5) == true)"},
+        {"1 + (2 + 3) + 4", "((1 + (2 + 3)) + 4)"},
+        {"(8 + 8) * 2", "((8 + 8) * 2)"},
+        {"2 / (1 + 3)", "(2 / (1 + 3))"},
+        {"-(7 + 6)", "(-(7 + 6))"},
+        {"!(true == true)", "(!(true == true))"}
+    };
+    
+    for (const auto& test: tests) {
+        Lexer lexer(test.input);
+        Parser parser(lexer);
+
+        const auto program = parser.parseProgram();
+        checkParseErrors(parser);
+
+        EXPECT_EQ(program->toString(), test.expected);
+    }
+}
+
+TEST(ParserTest, TestIfExprCondition) {
+    const std::string input = "if (x > u) { z }";
+
+    Lexer lexer(input);
+    Parser parser(lexer);
+
+    auto program = parser.parseProgram();
+    checkParseErrors(parser);
+    const unsigned int n_statements = program->nStatements();
+
+    EXPECT_EQ(n_statements, 1);
+
+    auto expr = program->getStatementAt(0)->getExpr();
+
+    EXPECT_EQ(expr->getCondition()->toString(), "(x > u)");
+    EXPECT_EQ(expr->getConsequence()->getStatementAt(0)->tokenLiteral(), "z");
+    EXPECT_EQ(expr->getAlternative(), nullptr);
+}
+
+TEST(ParserTest, TestIfElseExpr) {
+    const std::string input = "if (x > u) { x } else { y }";
+
+    Lexer lexer(input);
+    Parser parser(lexer);
+
+    auto program = parser.parseProgram();
+    checkParseErrors(parser);
+    const unsigned int n_statements = program->nStatements();
+
+    EXPECT_EQ(n_statements, 1);
+
+    auto expr = program->getStatementAt(0)->getExpr();
+
+    EXPECT_EQ(expr->getCondition()->toString(), "(x > u)");
+    EXPECT_EQ(expr->getConsequence()->getStatementAt(0)->tokenLiteral(), "x");
+    EXPECT_EQ(expr->getAlternative()->toString(), "y");
 }
