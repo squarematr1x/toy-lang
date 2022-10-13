@@ -134,10 +134,9 @@ TEST(ParserTest, TestParsingPrefixExpr) {
         EXPECT_EQ(n_statements, 1);
 
         const auto statement = program->getStatementAt(0);
-        const int num_value = stoi(statement->getExpr()->getRight()->tokenLiteral());
 
         EXPECT_EQ(statement->tokenLiteral(), test.oprtr);
-        EXPECT_EQ(num_value, test.value);
+        EXPECT_EQ(statement->getExpr()->getRight()->getIntValue(), test.value);
     }
 }
 
@@ -172,8 +171,8 @@ TEST(ParserTest, TestParsingInfixExpr) {
 
         const auto expr = program->getStatementAt(0)->getExpr();
 
-        EXPECT_EQ(stoi(expr->getLeft()->tokenLiteral()), test.left_val);
-        EXPECT_EQ(stoi(expr->getRight()->tokenLiteral()), test.right_val);
+        EXPECT_EQ(expr->getLeft()->getIntValue(), test.left_val);
+        EXPECT_EQ(expr->getRight()->getIntValue(), test.right_val);
         EXPECT_EQ(expr->tokenLiteral(), test.oprtr);
     }
 }
