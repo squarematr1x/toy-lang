@@ -18,6 +18,7 @@ OBJECTS := $(SRC:%.cpp=$(OBJ_DIR)/%.o)
 TEST_OBJECTS := $(filter-out $(OBJ_DIR)/src/main.o, $(OBJECTS)) $(TEST_SRC:%.cpp=$(TEST_OBJ_DIR)/%.o)
 DEPENDENCIES := $(OBJECTS:.o=.d)
 
+.PHONY: all
 all: build $(APP_DIR)/$(TARGET)
 
 $(OBJ_DIR)/%.o: %.cpp
@@ -38,38 +39,41 @@ $(APP_TEST_DIR)/$(TARGET): $(TEST_OBJECTS)
 
 -include $(DEPENDENCIES)
 
-.PHONY: all build run run-with-memory-check clean test run-tests debug release info
-
+.PHONY: build
 build:
 	@mkdir -p $(APP_DIR)
 	@mkdir -p $(OBJ_DIR)
 
+.PHONY: run
 run: all
 	./$(APP_DIR)/$(TARGET)
 
+.PHONY: run-with-memory-check
 run-with-memory-check: all
 	valgrind --leak-check=full -v ./$(APP_DIR)/$(TARGET)
 
+.PHONY: test
 test: build $(APP_TEST_DIR)/$(TARGET)
 
+.PHONY: run-tests
 run-tests: test
 	./$(APP_TEST_DIR)/$(TARGET)
 
-debug: CXXFLAGS += -DDEBUG -g
-debug: all
-
-release: CXXFLAGS += -O2
-release: all
-
+.PHONY: clean
 clean:
 	-@rm -rvf $(OBJ_DIR)/*
 	-@rm -rvf $(APP_DIR)/*
 	-@rm -rvf $(TEST_OBJ_DIR)/*
 	-@rm -rvf $(APP_TEST_DIR)/*
 
+.PHONY: info
 info:
 	@echo "- Application dir: ${APP_DIR}     "
 	@echo "- Object dir:      ${OBJ_DIR}     "
 	@echo "- Sources:         ${SRC}         "
 	@echo "- Objects:         ${OBJECTS}     "
 	@echo "- Dependencies:    ${DEPENDENCIES}"
+	@echo "- Test dir:    	  ${APP_TEST_DIR}"
+	@echo "- Test object dir: ${TEST_OBJ_DIR}"
+	@echo "- Test sources:    ${TEST_SRC}    "
+	@echo "- Test objects:    ${TEST_OBJECTS}"
