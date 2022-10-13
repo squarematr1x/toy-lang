@@ -168,7 +168,7 @@ std::unique_ptr<Expr> Parser::parseIntegerLiteral() {
 }
 
 std::unique_ptr<Expr> Parser::parseBoolean() {
-    return std::make_unique<Boolean>(m_cur_tok, curTokenIs(TOK_TRUE));
+    return std::make_unique<BoolExpr>(m_cur_tok, curTokenIs(TOK_TRUE));
 }
 
 std::unique_ptr<Expr> Parser::parsePrefixExpr() {

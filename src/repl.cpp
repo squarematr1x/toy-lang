@@ -1,6 +1,6 @@
 #include "repl.h"
-#include "lexer.h"
 #include "parser.h"
+#include "evaluator.h"
 
 #include <iostream>
 #include <string>
@@ -25,7 +25,13 @@ void start() {
             break;
         }
 
-        std::cout << program->toString() << '\n';
+        const std::string program_str = program->toString();
+        auto evaluated = evaluator::evaluate(std::move(program));
+    
+        if (evaluated)
+            std::cout << evaluated->inspect() << '\n';
+
+        std::cout << program_str << '\n';
     }
 }
 

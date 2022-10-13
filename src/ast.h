@@ -6,14 +6,39 @@
 
 #include "token.h"
 
+enum node_type {
+    NODE_BASIC,
+    NODE_PROGRAM,
+    NODE_EXPR_STMNT,
+    NODE_INT,
+    NODE_IDENT,
+    NODE_BOOL,
+    NODE_PREFIX,
+    NODE_INFIX
+};
+
+class Expr;
 class Identifier;
+class Statement;
 class BlockStatement;
 
 class Node {
 public:
     virtual ~Node() = default;
-    virtual const std::string tokenLiteral() const = 0;
-    virtual std::string toString() const = 0;
+
+    virtual const std::string tokenLiteral() const{ return ""; }
+    virtual std::string toString() const { return ""; }
+
+    virtual std::unique_ptr<Expr> getExpr() { return nullptr; }
+    virtual std::unique_ptr<Expr> getLeft() { return nullptr; }
+    virtual std::unique_ptr<Expr> getRight() { return nullptr; }
+
+    virtual std::vector<std::unique_ptr<Statement>> getStatements() { return {}; }
+
+    virtual int nodeType() const { return NODE_BASIC; }
+    virtual int getIntValue() const { return -1; }
+
+    virtual bool getBoolValue() const { return false; }
 
     friend std::ostream& operator<< (std::ostream& out, Node& node);
 };
@@ -21,10 +46,9 @@ public:
 class Expr: public Node {
 public:
     virtual ~Expr() = default;
+
     virtual void expressionNode() const = 0;
 
-    virtual std::unique_ptr<Expr> getLeft() { return nullptr; }
-    virtual std::unique_ptr<Expr> getRight() { return nullptr; }
     virtual std::unique_ptr<Expr> getCondition() { return nullptr; }
     virtual std::unique_ptr<Expr> getFunc() { return nullptr; }
     virtual std::unique_ptr<Expr> getArgAt(unsigned int index) { (void)index; return nullptr;}
@@ -41,9 +65,8 @@ public:
 class Statement: public Node {
 public:
     virtual ~Statement() = default;
-    virtual void statementNode() const = 0;
 
-    virtual std::unique_ptr<Expr> getExpr() { return nullptr; }
+    virtual void statementNode() const = 0;
 };
 
 // Root node of AST
@@ -57,8 +80,11 @@ public:
     std::string toString() const override;
 
     int nStatements() const { return static_cast<int>(m_statements.size()); } 
-    
+    int nodeType() const override { return NODE_PROGRAM; }
+
     std::unique_ptr<Statement> getStatementAt(unsigned int index);
+
+    std::vector<std::unique_ptr<Statement>> getStatements() override { return std::move(m_statements); }
 };
 
 class Identifier: public Expr {
@@ -73,8 +99,9 @@ public:
     std::string toString() const override;
 
     const std::string tokenLiteral() const override { return m_tok.literal; }
-
     const std::string getValue() const { return m_value; }
+
+    int nodeType() const override { return NODE_IDENT; }
 };
 
 class IntegerLiteral: public Expr {
@@ -89,19 +116,26 @@ public:
 
     std::string toString() const override { return m_tok.literal; }
     const std::string tokenLiteral() const override { return m_tok.literal; }
+
+    int nodeType() const override { return NODE_INT; }
+    int getIntValue() const override { return m_value; }
 };
 
-class Boolean: public Expr {
+class BoolExpr: public Expr {
     Token m_tok;
     bool m_value;
 
 public:
-    Boolean(const Token& tok, bool value);
+    BoolExpr(const Token& tok, bool value);
 
     void expressionNode() const override {}
 
     std::string toString() const override { return m_tok.literal; }
     const std::string tokenLiteral() const override { return m_tok.literal; }
+
+    int nodeType() const override { return NODE_BOOL; }
+
+    bool getBoolValue() const override { return m_value; }
 };
 
 class PrefixExpr: public Expr {
@@ -119,6 +153,8 @@ public:
     const std::string tokenLiteral() const override { return m_tok.literal; }
 
     std::unique_ptr<Expr> getRight() override { return std::move(m_right); }
+
+    int nodeType() const override { return NODE_PREFIX; }
 };
 
 class InfixExpr: public Expr {
@@ -138,6 +174,8 @@ public:
 
     std::unique_ptr<Expr> getLeft() override { return std::move(m_left); }
     std::unique_ptr<Expr> getRight() override { return std::move(m_right); }
+
+    int nodeType() const override { return NODE_INFIX; }
 };
 
 class IfExpr: public Expr {
@@ -247,6 +285,8 @@ public:
     const std::string tokenLiteral() const override { return m_tok.literal; }
 
     std::unique_ptr<Expr> getExpr() override { return std::move(m_expr); }
+
+    int nodeType() const override { return NODE_EXPR_STMNT; }
 };
 
 class BlockStatement: public Statement {

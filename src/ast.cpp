@@ -138,7 +138,7 @@ IntegerLiteral::IntegerLiteral(const Token& tok)
     : m_tok(tok) {
 }
 
-Boolean::Boolean(const Token& tok, bool value)
+BoolExpr::BoolExpr(const Token& tok, bool value)
     : m_tok(tok), m_value(value) {
 }
 
