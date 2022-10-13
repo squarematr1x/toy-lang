@@ -5,6 +5,8 @@
 #include <iostream>
 #include <string>
 
+#define __DEBUG__
+
 namespace repl {
 
 void start() {
@@ -31,7 +33,9 @@ void start() {
         if (evaluated)
             std::cout << evaluated->inspect() << '\n';
 
+#ifdef __DEBUG__
         std::cout << program_str << '\n';
+#endif
     }
 }
 

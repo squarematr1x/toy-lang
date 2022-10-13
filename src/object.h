@@ -30,7 +30,9 @@ struct Integer : public Object {
 
     const std::string inspect() const override { return std::to_string(value); }
     int getType() const override { return OBJ_INT; }
+
     int getIVal() const override { return value; }
+    int getBVal() const override { return value; }
 };
 
 struct Bool : public Object {
@@ -42,6 +44,7 @@ struct Bool : public Object {
     int getType() const override { return OBJ_BOOL; }
 
     int getBVal() const override { return value; }
+    int getIVal() const override { return value; }
 };
 
 struct NIL : public Object {
