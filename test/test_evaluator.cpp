@@ -10,7 +10,7 @@ struct EvalTest {
 };
 
 TEST(EvaluatorTest, TestEvalIntegerExpr) {
-    std::vector<EvalTest<int>> tests = {
+    const std::vector<EvalTest<int>> tests = {
         {"5", 5},
         {"17", 17},
         {"-99", -99},
@@ -39,7 +39,7 @@ TEST(EvaluatorTest, TestEvalIntegerExpr) {
 }
 
 TEST(EvaluatorTest, TestEvalBoolExpr) {
-    std::vector<EvalTest<bool>> tests = {
+    const std::vector<EvalTest<bool>> tests = {
         {"true", true},
         {"false", false},
         {"0 < 2", true},
@@ -92,7 +92,7 @@ TEST(EvaluatorTest, TestEvalBangOperator) {
 }
 
 TEST(EvaluatorTest, TestEvalIfElseExpr) {
-    std::vector<EvalTest<int>> int_out_tests = {
+    const std::vector<EvalTest<int>> int_out_tests = {
         {"if (true) { 1 }", 1},
         {"if (25) { 2 }", 2},
         {"if (9 < 11) { 15 }", 15},
@@ -100,7 +100,7 @@ TEST(EvaluatorTest, TestEvalIfElseExpr) {
         {"if (4 < 7) { 10 } else { 40 }", 10}
     };
 
-    std::vector<EvalTest<std::string>> nil_out_tests = {
+    const std::vector<EvalTest<std::string>> nil_out_tests = {
         {"if (false) { 10 }", "nil"},
         {"if (1 > 2) { 10 }", "nil"}
     };
@@ -121,5 +121,24 @@ TEST(EvaluatorTest, TestEvalIfElseExpr) {
 
         EXPECT_EQ(obj->inspect(), "nil");
         EXPECT_EQ(obj->getType(), OBJ_NIL);
+    }
+}
+
+TEST(EvaluatorTest, TestEvalReturnStatements) {
+    const std::vector<EvalTest<int>> tests = {
+        {"return 1;", 1},
+        {"return 88; 2;", 88},
+        {"return 3 * 4; 11;", 12},
+        {"5; return 7 * 7; 3;", 49},
+        {"if (9 > 3) { if (8 > 2) { return 10; } return 2; }", 10}
+    };
+
+    for (const auto& test : tests) {
+        Lexer lexer(test.input);
+        Parser parser(lexer);
+        auto obj = evaluator::evaluate(parser.parseProgram());
+
+        EXPECT_EQ(obj->getIntVal(), test.expected);
+        EXPECT_EQ(obj->getType(), OBJ_INT);
     }
 }
