@@ -38,7 +38,7 @@ void start() {
         }
 
         const std::string program_str = program->toString();
-        auto evaluated = evaluator::evaluate(std::move(program));
+        auto evaluated = evaluator::eval(std::move(program));
     
         if (evaluated)
             std::cout << evaluated->inspect() << '\n';

@@ -4,24 +4,33 @@
 
 namespace evaluator {
 
-std::unique_ptr<Object> evaluate(const std::unique_ptr<Node>& node) {
+std::unique_ptr<Object> eval(const std::unique_ptr<Node>& node) {
     switch (node->nodeType())
     {
     case NODE_PROGRAM:
         return evalProgram(node->getStatements());
     case NODE_EXPR_STMNT:
-        return evaluate(node->getExpr());
+        return eval(node->getExpr());
     case NODE_INT:   
         return std::make_unique<Integer>(node->getIntValue());
     case NODE_BOOL:
         return std::make_unique<Bool>(node->getBoolValue());
     case NODE_PREFIX: {
-        auto right = evaluate(node->getRight());
+        auto right = eval(node->getRight());
+        if (isError(right))
+            return right;
+
         return evalPrefixExpr(node->tokenLiteral(), right);
     }
     case NODE_INFIX: {
-        auto left = evaluate(node->getLeft());
-        auto right = evaluate(node->getRight());
+        auto left = eval(node->getLeft());
+        if (isError(left))
+            return left;
+    
+        auto right = eval(node->getRight());
+        if (isError(right))
+            return right;
+
         return evalInfixExpr(node->tokenLiteral(), left, right);
     }
     case NODE_BLOCK_STMNT:
@@ -29,7 +38,10 @@ std::unique_ptr<Object> evaluate(const std::unique_ptr<Node>& node) {
     case NODE_IF_EXPR:
         return evalIfExpr(node);
     case NODE_RETURN_STMNT: {
-        auto value = evaluate(node->getExpr());
+        auto value = eval(node->getExpr());
+        if (isError(value))
+            return value;
+
         return std::make_unique<Return>(std::move(value));
     }
     default:
@@ -41,10 +53,12 @@ std::unique_ptr<Object> evalProgram(std::vector<std::unique_ptr<Statement>> stat
     std::unique_ptr<Object> result = nullptr;
 
     for (auto& statement: statements) {
-        result = evaluate(std::move(statement));
+        result = eval(std::move(statement));
 
         if (result->getType() == OBJ_RETURN)
             return result->getObjValue();
+        if (result->getType() == OBJ_ERROR)
+            return result;
     }
     
     return result;
@@ -54,9 +68,9 @@ std::unique_ptr<Object> evalBlock(std::vector<std::unique_ptr<Statement>> statem
     std::unique_ptr<Object> result = nullptr;
 
     for (auto& statement: statements) {
-        result = evaluate(std::move(statement));
+        result = eval(std::move(statement));
 
-        if (result->getType() == OBJ_RETURN)
+        if (result->getType() == OBJ_RETURN || result->getType() == OBJ_ERROR)
             return result;
     }
     
@@ -69,7 +83,7 @@ std::unique_ptr<Object> evalPrefixExpr(const std::string& oprtr, const std::uniq
     if (oprtr == "-")
         return evalMinusOperator(right);
 
-    return std::make_unique<NIL>();
+    return std::make_unique<Error>(("unknown operator: " + oprtr + right->typeString()));
 }
 
 std::unique_ptr<Object> evalInfixExpr(const std::string& oprtr, const std::unique_ptr<Object>& left, const std::unique_ptr<Object>& right) {
@@ -80,7 +94,7 @@ std::unique_ptr<Object> evalInfixExpr(const std::string& oprtr, const std::uniqu
     if (oprtr == "!=")
         return std::make_unique<Bool>(left->getBoolVal() != right->getBoolVal());
 
-    return std::make_unique<NIL>();
+    return std::make_unique<Error>(("unknown operator: " + left->typeString() + oprtr + right->typeString()));
 }
 
 std::unique_ptr<Object> evalBangOperator(const std::unique_ptr<Object>& right) {
@@ -97,7 +111,7 @@ std::unique_ptr<Object> evalBangOperator(const std::unique_ptr<Object>& right) {
 
 std::unique_ptr<Object> evalMinusOperator(const std::unique_ptr<Object>& right) {
     if (right->getType() != OBJ_INT)
-        return std::make_unique<NIL>();
+        return std::make_unique<Error>(("unknown operator: -" + right->typeString()));
     
     int value = right->getIntVal();
 
@@ -125,22 +139,33 @@ std::unique_ptr<Object> evalIntInfixExpr(const std::string& oprtr, const std::un
     if (oprtr == "!=")
         return std::make_unique<Bool>(left_value != right_value);
 
-    return std::make_unique<NIL>();
+    return std::make_unique<Error>(("unknown operator: " + left->typeString() + oprtr + right->typeString()));
 }
 
 std::unique_ptr<Object> evalIfExpr(const std::unique_ptr<Node>& node) {
-    if (isTrue(evaluate(node->getCondition())))
-        return evaluate(node->getConsequence());
+    auto cond = eval(node->getCondition());
+    if (isError(cond))
+        return cond;
+
+    if (isTrue(cond))
+        return eval(node->getConsequence());
 
     auto alt = node->getAlternative();
     if (alt)
-        return evaluate(std::move(alt));
+        return eval(std::move(alt));
 
     return std::make_unique<NIL>();
 }
 
 bool isTrue(const std::unique_ptr<Object>& obj) {
     return obj->getBoolVal();
+}
+
+bool isError(const std::unique_ptr<Object>& obj) {
+    if (obj)
+        return obj->getType() == OBJ_ERROR;
+    
+    return false;
 }
 
 } // evaluator
