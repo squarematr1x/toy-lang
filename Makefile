@@ -52,6 +52,10 @@ run: all
 run-with-memory-check: all
 	valgrind --leak-check=full -v ./$(APP_DIR)/$(TARGET)
 
+.PHONY: debug
+debug: all
+	lldb ./$(APP_DIR)/$(TARGET)
+
 .PHONY: test
 test: build $(APP_TEST_DIR)/$(TARGET)
 
