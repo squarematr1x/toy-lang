@@ -3,13 +3,14 @@
 #include "../src/parser.h"
 #include "../src/evaluator.h"
 
-TEST(EvaluatorTest, TestEvalIntegerExpr) {
-    struct EvalTest {
-        std::string input;
-        int expected;
-    };
+template <typename T>
+struct EvalTest {
+    std::string input;
+    T expected;
+};
 
-    std::vector<EvalTest> tests = {
+TEST(EvaluatorTest, TestEvalIntegerExpr) {
+    std::vector<EvalTest<int>> tests = {
         {"5", 5},
         {"17", 17},
         {"-99", -99},
@@ -27,23 +28,18 @@ TEST(EvaluatorTest, TestEvalIntegerExpr) {
         {"(5 + 10 * 2 + 15 / 3) * 2 + -10", 50},
     };
 
-    for (const auto&  test : tests) {
+    for (const auto& test : tests) {
         Lexer lexer(test.input);
         Parser parser(lexer);
-
         auto obj = evaluator::evaluate(parser.parseProgram());
-        EXPECT_EQ(obj->getIVal(), test.expected);
+
+        EXPECT_EQ(obj->getIntVal(), test.expected);
         EXPECT_EQ(obj->getType(), OBJ_INT);
     }
 }
 
 TEST(EvaluatorTest, TestEvalBoolExpr) {
-    struct EvalTest {
-        std::string input;
-        bool expected;
-    };
-
-    std::vector<EvalTest> tests = {
+    std::vector<EvalTest<bool>> tests = {
         {"true", true},
         {"false", false},
         {"0 < 2", true},
@@ -65,23 +61,18 @@ TEST(EvaluatorTest, TestEvalBoolExpr) {
         {"(5 > 2) == true", true},
     };
 
-    for (const auto&  test : tests) {
+    for (const auto& test : tests) {
         Lexer lexer(test.input);
         Parser parser(lexer);
-
         auto obj = evaluator::evaluate(parser.parseProgram());
-        EXPECT_EQ(obj->getBVal(), test.expected);
+
+        EXPECT_EQ(obj->getBoolVal(), test.expected);
         EXPECT_EQ(obj->getType(), OBJ_BOOL);
     }
 }
 
-TEST(EvaluatorTest, TestEvanBangOperator) {
-    struct EvalTest {
-        std::string input;
-        bool expected;
-    };
-
-    const std::vector<EvalTest> tests = {
+TEST(EvaluatorTest, TestEvalBangOperator) {
+    const std::vector<EvalTest<bool>> tests = {
         {"!false", true},
         {"!2", false},
         {"!!true", true},
@@ -90,12 +81,45 @@ TEST(EvaluatorTest, TestEvanBangOperator) {
         {"!!7", true}
     };
 
-    for (const auto&  test : tests) {
+    for (const auto& test : tests) {
         Lexer lexer(test.input);
         Parser parser(lexer);
-
         auto obj = evaluator::evaluate(parser.parseProgram());
-        EXPECT_EQ(obj->getBVal(), test.expected);
+
+        EXPECT_EQ(obj->getBoolVal(), test.expected);
         EXPECT_EQ(obj->getType(), OBJ_BOOL);
+    }
+}
+
+TEST(EvaluatorTest, TestEvalIfElseExpr) {
+    std::vector<EvalTest<int>> int_out_tests = {
+        {"if (true) { 1 }", 1},
+        {"if (25) { 2 }", 2},
+        {"if (9 < 11) { 15 }", 15},
+        {"if (3 > 5) { 10 } else { 30 }", 30},
+        {"if (4 < 7) { 10 } else { 40 }", 10}
+    };
+
+    std::vector<EvalTest<std::string>> nil_out_tests = {
+        {"if (false) { 10 }", "nil"},
+        {"if (1 > 2) { 10 }", "nil"}
+    };
+
+    for (const auto& test : int_out_tests) {
+        Lexer lexer(test.input);
+        Parser parser(lexer);
+        auto obj = evaluator::evaluate(parser.parseProgram());
+
+        EXPECT_EQ(obj->getIntVal(), test.expected);
+        EXPECT_EQ(obj->getType(), OBJ_INT);
+    }
+
+    for (const auto& test : nil_out_tests) {
+        Lexer lexer(test.input);
+        Parser parser(lexer);
+        auto obj = evaluator::evaluate(parser.parseProgram());
+
+        EXPECT_EQ(obj->inspect(), "nil");
+        EXPECT_EQ(obj->getType(), OBJ_NIL);
     }
 }

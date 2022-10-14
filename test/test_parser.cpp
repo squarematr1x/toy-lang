@@ -375,5 +375,4 @@ TEST(ParserTest, TestCallExprParameterParsing) {
         for (unsigned int i = 0; i <  n; i++)
             EXPECT_EQ(call_expr->getArgAt(i)->toString(), test.expected_params[i]);
     }
-    
 }
