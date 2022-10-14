@@ -11,6 +11,7 @@ enum node_type {
     NODE_PROGRAM,
     NODE_EXPR_STMNT,
     NODE_BLOCK_STMNT,
+    NODE_RETURN_STMNT,
     NODE_IF_EXPR,
     NODE_INT,
     NODE_IDENT,
@@ -272,6 +273,10 @@ public:
     
     std::string toString() const override;
     const std::string tokenLiteral() const override { return m_tok.literal; }
+
+    std::unique_ptr<Expr> getExpr() override { return std::move(m_value); }
+
+    int nodeType() const override { return NODE_RETURN_STMNT; }
 };
 
 class ExprStatement: public Statement {

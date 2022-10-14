@@ -8,7 +8,7 @@ std::unique_ptr<Object> evaluate(const std::unique_ptr<Node>& node) {
     switch (node->nodeType())
     {
     case NODE_PROGRAM:
-        return evalStatements(node->getStatements());
+        return evalProgram(node->getStatements());
     case NODE_EXPR_STMNT:
         return evaluate(node->getExpr());
     case NODE_INT:   
@@ -25,19 +25,40 @@ std::unique_ptr<Object> evaluate(const std::unique_ptr<Node>& node) {
         return evalInfixExpr(node->tokenLiteral(), left, right);
     }
     case NODE_BLOCK_STMNT:
-        return evalStatements(node->getStatements());
+        return evalBlock(node->getStatements());
     case NODE_IF_EXPR:
         return evalIfExpr(node);
+    case NODE_RETURN_STMNT: {
+        auto value = evaluate(node->getExpr());
+        return std::make_unique<Return>(std::move(value));
+    }
     default:
         return std::make_unique<NIL>();
     }
 }
 
-std::unique_ptr<Object> evalStatements(std::vector<std::unique_ptr<Statement>> statements) {
+std::unique_ptr<Object> evalProgram(std::vector<std::unique_ptr<Statement>> statements) {
     std::unique_ptr<Object> result = nullptr;
 
-    for (auto& statement: statements)
+    for (auto& statement: statements) {
         result = evaluate(std::move(statement));
+
+        if (result->getType() == OBJ_RETURN)
+            return result->getObjValue();
+    }
+    
+    return result;
+}
+
+std::unique_ptr<Object> evalBlock(std::vector<std::unique_ptr<Statement>> statements) {
+    std::unique_ptr<Object> result = nullptr;
+
+    for (auto& statement: statements) {
+        result = evaluate(std::move(statement));
+
+        if (result->getType() == OBJ_RETURN)
+            return result;
+    }
     
     return result;
 }

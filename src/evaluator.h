@@ -6,7 +6,8 @@
 namespace evaluator {
 
 std::unique_ptr<Object> evaluate(const std::unique_ptr<Node>& node);
-std::unique_ptr<Object> evalStatements(std::vector<std::unique_ptr<Statement>> statements);
+std::unique_ptr<Object> evalProgram(std::vector<std::unique_ptr<Statement>> statements);
+std::unique_ptr<Object> evalBlock(std::vector<std::unique_ptr<Statement>> statements);
 std::unique_ptr<Object> evalPrefixExpr(const std::string& oprtr, const std::unique_ptr<Object>& right);
 std::unique_ptr<Object> evalInfixExpr(const std::string& oprtr, const std::unique_ptr<Object>& left, const std::unique_ptr<Object>& right);
 std::unique_ptr<Object> evalBangOperator(const std::unique_ptr<Object>& right);
