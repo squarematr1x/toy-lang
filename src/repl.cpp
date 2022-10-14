@@ -19,6 +19,16 @@ void start() {
             break;
         
         Lexer lexer(line);
+
+        // while (true) {
+        //     Token tok = lexer.nextToken();
+
+        //     if (tok.type == TOK_EOF) 
+        //         break;
+
+        //     std::cout << tok.type << " : " << tok.literal << '\n';
+        // }
+
         Parser parser(lexer);
         auto program = parser.parseProgram();
 
@@ -34,7 +44,8 @@ void start() {
             std::cout << evaluated->inspect() << '\n';
 
 #ifdef __DEBUG__
-        std::cout << program_str << '\n';
+        std::cout << "Tree structure: ";
+        std::cout << program_str << "\n";
 #endif
     }
 }

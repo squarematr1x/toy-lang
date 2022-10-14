@@ -24,6 +24,10 @@ std::unique_ptr<Object> evaluate(const std::unique_ptr<Node>& node) {
         auto right = evaluate(node->getRight());
         return evalInfixExpr(node->tokenLiteral(), left, right);
     }
+    case NODE_BLOCK_STMNT:
+        return evalStatements(node->getStatements());
+    case NODE_IF_EXPR:
+        return evalIfExpr(node);
     default:
         return std::make_unique<NIL>();
     }
@@ -32,9 +36,8 @@ std::unique_ptr<Object> evaluate(const std::unique_ptr<Node>& node) {
 std::unique_ptr<Object> evalStatements(std::vector<std::unique_ptr<Statement>> statements) {
     std::unique_ptr<Object> result = nullptr;
 
-    for (auto& statement: statements) {
+    for (auto& statement: statements)
         result = evaluate(std::move(statement));
-    }
     
     return result;
 }
@@ -52,9 +55,9 @@ std::unique_ptr<Object> evalInfixExpr(const std::string& oprtr, const std::uniqu
     if (left->getType() == OBJ_INT && right->getType() == OBJ_INT)
         return evalIntInfixExpr(oprtr, left, right);
     if (oprtr == "==")
-        return std::make_unique<Bool>(left->getBVal() == right->getBVal());
+        return std::make_unique<Bool>(left->getBoolVal() == right->getBoolVal());
     if (oprtr == "!=")
-        return std::make_unique<Bool>(left->getBVal() != right->getBVal());
+        return std::make_unique<Bool>(left->getBoolVal() != right->getBoolVal());
 
     return std::make_unique<NIL>();
 }
@@ -63,10 +66,9 @@ std::unique_ptr<Object> evalBangOperator(const std::unique_ptr<Object>& right) {
     switch (right->getType())
     {
     case OBJ_BOOL:
-        return std::make_unique<Bool>(!right->getBVal());
-    case OBJ_NIL: {
+        return std::make_unique<Bool>(!right->getBoolVal());
+    case OBJ_NIL:
         return std::make_unique<Bool>(true);
-    }
     default:
         return std::make_unique<Bool>(false);
     }
@@ -76,33 +78,48 @@ std::unique_ptr<Object> evalMinusOperator(const std::unique_ptr<Object>& right) 
     if (right->getType() != OBJ_INT)
         return std::make_unique<NIL>();
     
-    int value = right->getIVal();
+    int value = right->getIntVal();
 
     return std::make_unique<Integer>(-value);
 }
 
 std::unique_ptr<Object> evalIntInfixExpr(const std::string& oprtr, const std::unique_ptr<Object>& left, const std::unique_ptr<Object>& right) {
-    int left_value = left->getIVal();
-    int right_value = right->getIVal();
+    int left_value = left->getIntVal();
+    int right_value = right->getIntVal();
 
     if (oprtr == "+")
         return std::make_unique<Integer>(left_value + right_value);
-    else if (oprtr == "-")
+    if (oprtr == "-")
         return std::make_unique<Integer>(left_value - right_value);
-    else if (oprtr == "*")
+    if (oprtr == "*")
         return std::make_unique<Integer>(left_value * right_value);
-    else if (oprtr == "/")
+    if (oprtr == "/")
         return std::make_unique<Integer>(left_value / right_value);
-    else if (oprtr == "<")
+    if (oprtr == "<")
         return std::make_unique<Bool>(left_value < right_value);
-    else if (oprtr == ">")
+    if (oprtr == ">")
         return std::make_unique<Bool>(left_value > right_value);
-    else if (oprtr == "==")
+    if (oprtr == "==")
         return std::make_unique<Bool>(left_value == right_value);
-    else if (oprtr == "!=")
+    if (oprtr == "!=")
         return std::make_unique<Bool>(left_value != right_value);
-    else
-        return std::make_unique<NIL>();
+
+    return std::make_unique<NIL>();
+}
+
+std::unique_ptr<Object> evalIfExpr(const std::unique_ptr<Node>& node) {
+    if (isTrue(evaluate(node->getCondition())))
+        return evaluate(node->getConsequence());
+
+    auto alt = node->getAlternative();
+    if (alt)
+        return evaluate(std::move(alt));
+
+    return std::make_unique<NIL>();
+}
+
+bool isTrue(const std::unique_ptr<Object>& obj) {
+    return obj->getBoolVal();
 }
 
 } // evaluator

@@ -17,8 +17,8 @@ struct Object {
 
     virtual const std::string inspect() const { return ""; }
     virtual int getType() const { return -1; }
-    virtual int getIVal() const { return 0; }
-    virtual int getBVal() const { return 0; }
+    virtual int getIntVal() const { return 0; }
+    virtual bool getBoolVal() const { return true; }
 
     virtual ~Object() = default;
 };
@@ -31,8 +31,8 @@ struct Integer : public Object {
     const std::string inspect() const override { return std::to_string(value); }
     int getType() const override { return OBJ_INT; }
 
-    int getIVal() const override { return value; }
-    int getBVal() const override { return value; }
+    int getIntVal() const override { return value; }
+    bool getBoolVal() const override { return value; }
 };
 
 struct Bool : public Object {
@@ -40,14 +40,16 @@ struct Bool : public Object {
 
     Bool(bool value_in) : value(value_in) {}
 
-    const std::string inspect() const override { return std::to_string(value); }
+    const std::string inspect() const override;
     int getType() const override { return OBJ_BOOL; }
 
-    int getBVal() const override { return value; }
-    int getIVal() const override { return value; }
+    int getIntVal() const override { return value; }
+    bool getBoolVal() const override { return value; }
 };
 
 struct NIL : public Object {
     const std::string inspect() const override { return "nil"; }
     int getType() const override { return OBJ_NIL; }
+
+    bool getBoolVal() const override { return false; }
 };

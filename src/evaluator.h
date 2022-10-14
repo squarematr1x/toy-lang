@@ -12,5 +12,8 @@ std::unique_ptr<Object> evalInfixExpr(const std::string& oprtr, const std::uniqu
 std::unique_ptr<Object> evalBangOperator(const std::unique_ptr<Object>& right);
 std::unique_ptr<Object> evalMinusOperator(const std::unique_ptr<Object>& right);
 std::unique_ptr<Object> evalIntInfixExpr(const std::string& oprtr, const std::unique_ptr<Object>& left, const std::unique_ptr<Object>& right);
+std::unique_ptr<Object> evalIfExpr(const std::unique_ptr<Node>& node);
+
+bool isTrue(const std::unique_ptr<Object>& obj);
 
 } // evaluator

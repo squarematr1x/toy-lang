@@ -78,7 +78,7 @@ std::string IfExpr::toString() const {
     std::string if_str = "if " + m_condition->toString() + " " + m_consequence->toString();
 
     if (m_alternative) {
-        if_str += "else ";
+        if_str += " else ";
         if_str += m_alternative->toString();
     }
     

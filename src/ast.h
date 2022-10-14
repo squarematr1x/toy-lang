@@ -10,6 +10,8 @@ enum node_type {
     NODE_BASIC,
     NODE_PROGRAM,
     NODE_EXPR_STMNT,
+    NODE_BLOCK_STMNT,
+    NODE_IF_EXPR,
     NODE_INT,
     NODE_IDENT,
     NODE_BOOL,
@@ -32,6 +34,9 @@ public:
     virtual std::unique_ptr<Expr> getExpr() { return nullptr; }
     virtual std::unique_ptr<Expr> getLeft() { return nullptr; }
     virtual std::unique_ptr<Expr> getRight() { return nullptr; }
+    virtual std::unique_ptr<Expr> getCondition() { return nullptr; }
+    virtual std::unique_ptr<BlockStatement> getConsequence() { return nullptr; }
+    virtual std::unique_ptr<BlockStatement> getAlternative() { return nullptr; }
 
     virtual std::vector<std::unique_ptr<Statement>> getStatements() { return {}; }
 
@@ -49,12 +54,9 @@ public:
 
     virtual void expressionNode() const = 0;
 
-    virtual std::unique_ptr<Expr> getCondition() { return nullptr; }
     virtual std::unique_ptr<Expr> getFunc() { return nullptr; }
     virtual std::unique_ptr<Expr> getArgAt(unsigned int index) { (void)index; return nullptr;}
 
-    virtual std::unique_ptr<BlockStatement> getConsequence() { return nullptr; }
-    virtual std::unique_ptr<BlockStatement> getAlternative() { return nullptr; }
     virtual std::unique_ptr<BlockStatement> getBody() { return nullptr; }
 
     virtual std::vector<Identifier> getParams() const { return {}; }
@@ -198,6 +200,8 @@ public:
     std::unique_ptr<Expr> getCondition() override { return std::move(m_condition); }
     std::unique_ptr<BlockStatement> getConsequence() override { return std::move(m_consequence); }
     std::unique_ptr<BlockStatement> getAlternative() override { return std::move(m_alternative); }
+
+    int nodeType() const override { return NODE_IF_EXPR; }
 };
 
 class FuncLiteral: public Expr {
@@ -303,4 +307,8 @@ public:
     const std::string tokenLiteral() const override { return m_tok.literal; }
 
     std::unique_ptr<Statement> getStatementAt(unsigned int index);
+
+    int nodeType() const override { return NODE_BLOCK_STMNT; }
+
+    std::vector<std::unique_ptr<Statement>> getStatements() override { return std::move(m_statements); }
 };

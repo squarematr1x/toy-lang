@@ -3,6 +3,10 @@
 #include <string>
 #include <map>
 
+// TODO: To get token string for error handling create array and use enum index to get string
+// tok_msg = ["TOK_EOF", "TOK_ILLEGAL", "TOK_IDENT", ...]
+// tok_msg[m_cur_tok.type] -> "TOK_X" and so on...
+
 enum token_type {
     TOK_EOF = -1,
     TOK_ILLEGAL,
