@@ -10,6 +10,8 @@
 namespace repl {
 
 void start() {
+    Env env;
+
     while (true) {
         std::string line;
         std::cout << ">> ";
@@ -38,7 +40,7 @@ void start() {
         }
 
         const std::string program_str = program->toString();
-        auto evaluated = evaluator::eval(std::move(program));
+        auto evaluated = evaluator::eval(std::move(program), env);
     
         if (evaluated)
             std::cout << evaluated->inspect() << '\n';

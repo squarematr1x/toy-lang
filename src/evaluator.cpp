@@ -1,59 +1,66 @@
 #include "evaluator.h"
 
-#include <iostream>
-
 namespace evaluator {
 
-std::unique_ptr<Object> eval(const std::unique_ptr<Node>& node) {
+std::unique_ptr<Object> eval(const std::unique_ptr<Node>& node, Env& env) {
     switch (node->nodeType())
     {
     case NODE_PROGRAM:
-        return evalProgram(node->getStatements());
+        return evalProgram(node->getStatements(), env);
     case NODE_EXPR_STMNT:
-        return eval(node->getExpr());
+        return eval(node->getExpr(), env);
+    case NODE_IDENT:
+        return evalIdentifier(node, env);
     case NODE_INT:   
         return std::make_unique<Integer>(node->getIntValue());
     case NODE_BOOL:
         return std::make_unique<Bool>(node->getBoolValue());
     case NODE_PREFIX: {
-        auto right = eval(node->getRight());
+        auto right = eval(node->getRight(), env);
         if (isError(right))
             return right;
 
         return evalPrefixExpr(node->tokenLiteral(), right);
     }
     case NODE_INFIX: {
-        auto left = eval(node->getLeft());
+        auto left = eval(node->getLeft(), env);
         if (isError(left))
             return left;
     
-        auto right = eval(node->getRight());
+        auto right = eval(node->getRight(), env);
         if (isError(right))
             return right;
 
         return evalInfixExpr(node->tokenLiteral(), left, right);
     }
     case NODE_BLOCK_STMNT:
-        return evalBlock(node->getStatements());
+        return evalBlock(node->getStatements(), env);
     case NODE_IF_EXPR:
-        return evalIfExpr(node);
+        return evalIfExpr(node, env);
     case NODE_RETURN_STMNT: {
-        auto value = eval(node->getExpr());
+        auto value = eval(node->getExpr(), env);
         if (isError(value))
             return value;
 
         return std::make_unique<Return>(std::move(value));
+    }
+    case NODE_LET_STMNT: {
+        auto value = eval(node->getExpr(), env);
+        if (isError(value))
+            return value;
+
+        env.set(node->getIdentName(), std::move(value));
     }
     default:
         return std::make_unique<NIL>();
     }
 }
 
-std::unique_ptr<Object> evalProgram(std::vector<std::unique_ptr<Statement>> statements) {
+std::unique_ptr<Object> evalProgram(std::vector<std::unique_ptr<Statement>> statements, Env& env) {
     std::unique_ptr<Object> result = nullptr;
 
     for (auto& statement: statements) {
-        result = eval(std::move(statement));
+        result = eval(std::move(statement), env);
 
         if (result->getType() == OBJ_RETURN)
             return result->getObjValue();
@@ -64,11 +71,11 @@ std::unique_ptr<Object> evalProgram(std::vector<std::unique_ptr<Statement>> stat
     return result;
 }
 
-std::unique_ptr<Object> evalBlock(std::vector<std::unique_ptr<Statement>> statements) {
+std::unique_ptr<Object> evalBlock(std::vector<std::unique_ptr<Statement>> statements, Env& env) {
     std::unique_ptr<Object> result = nullptr;
 
     for (auto& statement: statements) {
-        result = eval(std::move(statement));
+        result = eval(std::move(statement), env);
 
         if (result->getType() == OBJ_RETURN || result->getType() == OBJ_ERROR)
             return result;
@@ -142,19 +149,28 @@ std::unique_ptr<Object> evalIntInfixExpr(const std::string& oprtr, const std::un
     return std::make_unique<Error>(("unknown operator: " + left->typeString() + oprtr + right->typeString()));
 }
 
-std::unique_ptr<Object> evalIfExpr(const std::unique_ptr<Node>& node) {
-    auto cond = eval(node->getCondition());
+std::unique_ptr<Object> evalIfExpr(const std::unique_ptr<Node>& node, Env& env) {
+    auto cond = eval(node->getCondition(), env);
     if (isError(cond))
         return cond;
 
     if (isTrue(cond))
-        return eval(node->getConsequence());
+        return eval(node->getConsequence(), env);
 
     auto alt = node->getAlternative();
     if (alt)
-        return eval(std::move(alt));
+        return eval(std::move(alt), env);
 
     return std::make_unique<NIL>();
+}
+
+std::unique_ptr<Object> evalIdentifier(const std::unique_ptr<Node>& node, Env& env) {
+    auto value = env.get(node->getIdentName());
+
+    if (!value)
+        return std::make_unique<Error>(("identifier not found: " + node->getIdentName()));
+    
+    return value;
 }
 
 bool isTrue(const std::unique_ptr<Object>& obj) {

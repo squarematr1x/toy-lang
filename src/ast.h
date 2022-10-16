@@ -12,6 +12,7 @@ enum node_type {
     NODE_EXPR_STMNT,
     NODE_BLOCK_STMNT,
     NODE_RETURN_STMNT,
+    NODE_LET_STMNT,
     NODE_IF_EXPR,
     NODE_INT,
     NODE_IDENT,
@@ -30,6 +31,7 @@ public:
     virtual ~Node() = default;
 
     virtual const std::string tokenLiteral() const{ return ""; }
+    virtual const std::string getIdentName() const { return ""; }
     virtual std::string toString() const { return ""; }
 
     virtual std::unique_ptr<Expr> getExpr() { return nullptr; }
@@ -102,7 +104,7 @@ public:
     std::string toString() const override;
 
     const std::string tokenLiteral() const override { return m_tok.literal; }
-    const std::string getValue() const { return m_value; }
+    const std::string getIdentName() const override { return m_value; }
 
     int nodeType() const override { return NODE_IDENT; }
 };
@@ -232,6 +234,7 @@ class CallExpr: public Expr {
 
 public:
     CallExpr(const Token& tok, std::unique_ptr<Expr> func);
+
     void expressionNode() const override {}
     void setArgs(std::vector<std::unique_ptr<Expr>> args) { m_args = std::move(args); }
 
@@ -253,12 +256,17 @@ class LetStatement: public Statement {
 public:
     LetStatement(const Token& tok);
 
-    void statementNode() const override {}
     std::string toString() const override;
+    const std::string tokenLiteral() const override { return m_tok.literal; }
+    const std::string getIdentName() const override { return m_name.getIdentName(); }
+
+    void statementNode() const override {}
     void setName(const Identifier ident) { m_name = ident; }
     void setValue(std::unique_ptr<Expr> expr) { m_value = std::move(expr); }
 
-    const std::string tokenLiteral() const override { return m_tok.literal; }
+    std::unique_ptr<Expr> getExpr() override { return std::move(m_value); }
+
+    int nodeType() const override { return NODE_LET_STMNT; }
 };
 
 class ReturnStatement: public Statement {
