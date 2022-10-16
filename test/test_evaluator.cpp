@@ -29,9 +29,10 @@ TEST(EvaluatorTest, TestEvalIntegerExpr) {
     };
 
     for (const auto& test : tests) {
+        Env env;
         Lexer lexer(test.input);
         Parser parser(lexer);
-        auto obj = evaluator::eval(parser.parseProgram());
+        auto obj = evaluator::eval(parser.parseProgram(), env);
 
         EXPECT_EQ(obj->getIntVal(), test.expected);
         EXPECT_EQ(obj->getType(), OBJ_INT);
@@ -62,9 +63,10 @@ TEST(EvaluatorTest, TestEvalBoolExpr) {
     };
 
     for (const auto& test : tests) {
+        Env env;
         Lexer lexer(test.input);
         Parser parser(lexer);
-        auto obj = evaluator::eval(parser.parseProgram());
+        auto obj = evaluator::eval(parser.parseProgram(), env);
 
         EXPECT_EQ(obj->getBoolVal(), test.expected);
         EXPECT_EQ(obj->getType(), OBJ_BOOL);
@@ -82,9 +84,10 @@ TEST(EvaluatorTest, TestEvalBangOperator) {
     };
 
     for (const auto& test : tests) {
+        Env env;
         Lexer lexer(test.input);
         Parser parser(lexer);
-        auto obj = evaluator::eval(parser.parseProgram());
+        auto obj = evaluator::eval(parser.parseProgram(), env);
 
         EXPECT_EQ(obj->getBoolVal(), test.expected);
         EXPECT_EQ(obj->getType(), OBJ_BOOL);
@@ -106,18 +109,20 @@ TEST(EvaluatorTest, TestEvalIfElseExpr) {
     };
 
     for (const auto& test : int_out_tests) {
+        Env env;
         Lexer lexer(test.input);
         Parser parser(lexer);
-        auto obj = evaluator::eval(parser.parseProgram());
+        auto obj = evaluator::eval(parser.parseProgram(), env);
 
         EXPECT_EQ(obj->getIntVal(), test.expected);
         EXPECT_EQ(obj->getType(), OBJ_INT);
     }
 
     for (const auto& test : nil_out_tests) {
+        Env env;
         Lexer lexer(test.input);
         Parser parser(lexer);
-        auto obj = evaluator::eval(parser.parseProgram());
+        auto obj = evaluator::eval(parser.parseProgram(), env);
 
         EXPECT_EQ(obj->inspect(), "nil");
         EXPECT_EQ(obj->getType(), OBJ_NIL);
@@ -135,9 +140,10 @@ TEST(EvaluatorTest, TestEvalReturnStatements) {
     };
 
     for (const auto& test : tests) {
+        Env env;
         Lexer lexer(test.input);
         Parser parser(lexer);
-        auto obj = evaluator::eval(parser.parseProgram());
+        auto obj = evaluator::eval(parser.parseProgram(), env);
 
         EXPECT_EQ(obj->getIntVal(), test.expected);
         EXPECT_EQ(obj->getType(), OBJ_INT);
@@ -150,15 +156,35 @@ TEST(EvaluatorTest, TestErrorHandling) {
         {"true + false;", "Error: unknown operator: BOOLEAN+BOOLEAN"},
         {"5; true + false; 5", "Error: unknown operator: BOOLEAN+BOOLEAN"},
         {"if (10 > 1) { true + false; }","Error: unknown operator: BOOLEAN+BOOLEAN"},
-        {"if (10 > 1) { if (10 > 1) { return true + false; } return 1; }", "Error: unknown operator: BOOLEAN+BOOLEAN"}
+        {"if (10 > 1) { if (10 > 1) { return true + false; } return 1; }", "Error: unknown operator: BOOLEAN+BOOLEAN"},
+        {"some_var", "Error: identifier not found: some_var"}
     };
 
     for (const auto& test : tests) {
+        Env env;
         Lexer lexer(test.input);
         Parser parser(lexer);
-        auto obj = evaluator::eval(parser.parseProgram());
+        auto obj = evaluator::eval(parser.parseProgram(), env);
 
         EXPECT_EQ(obj->getType(), OBJ_ERROR);
         EXPECT_EQ(obj->inspect(), test.expected);
+    }
+}
+
+TEST(EvaluatorTest, TestEvalLetStatements) {
+    const std::vector<EvalTest<int>> tests = {
+        {"let x = 4; x;", 4},
+        {"let x = 2*3; x;", 6},
+        {"let foo = 3;  let bar = foo; bar;", 3},
+        {"let x = 12; let y = x; let z = x + y + 1; z;", 25}
+    };
+
+    for (const auto& test : tests) {
+        Env env;
+        Lexer lexer(test.input);
+        Parser parser(lexer);
+        auto obj = evaluator::eval(parser.parseProgram(), env);
+        EXPECT_EQ(obj->getIntVal(), test.expected);
+        EXPECT_EQ(obj->getType(), OBJ_INT);
     }
 }
