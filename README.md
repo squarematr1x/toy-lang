@@ -9,7 +9,11 @@ Use: ```make run```.
 
 Before testing install gtest with ```sudo apt-get install libgtest-dev```. Then just use: ```make run-tests```.
 
-### To detect memory issues with Valgrind
+### Debug
+
+When recursion is used a lot, LLDB debugger can become quite convenient. Debug with: ```make debug```.
+
+### Detect memory issues with Valgrind
 
 Use: ```make run-with-memory-check```.
 
@@ -17,3 +21,7 @@ Use: ```make run-with-memory-check```.
 
 * [Ball, T. (2018). Writing An Interpreter In Go.](https://interpreterbook.com/)
 * [Nystrom, R. (2021). Crafting interpreters. Genever Benning.](https://craftinginterpreters.com/)
+
+### TODO:
+
+* Many things, almost everything still.
