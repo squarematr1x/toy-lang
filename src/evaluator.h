@@ -1,24 +1,33 @@
 #pragma once
 
+#include <iostream>
+
 #include "ast.h"
 #include "env.h"
 
 namespace evaluator {
 
-std::unique_ptr<Object> eval(const std::unique_ptr<Node>& node, Env& env);
-std::unique_ptr<Object> evalProgram(std::vector<std::unique_ptr<Statement>> statements, Env& env);
-std::unique_ptr<Object> evalBlock(std::vector<std::unique_ptr<Statement>> statements, Env& env);
-std::unique_ptr<Object> evalPrefixExpr(const std::string& oprtr, const std::unique_ptr<Object>& right);
-std::unique_ptr<Object> evalInfixExpr(const std::string& oprtr, const std::unique_ptr<Object>& left, const std::unique_ptr<Object>& right);
-std::unique_ptr<Object> evalBangOperator(const std::unique_ptr<Object>& right);
-std::unique_ptr<Object> evalMinusOperator(const std::unique_ptr<Object>& right);
-std::unique_ptr<Object> evalIntInfixExpr(const std::string& oprtr, const std::unique_ptr<Object>& left, const std::unique_ptr<Object>& right);
-std::unique_ptr<Object> evalIfExpr(const std::unique_ptr<Node>& node, Env& env);
-std::unique_ptr<Object> evalIdentifier(const std::unique_ptr<Node>& node, Env& env);
+ObjectPtr eval(const ASTNodePtr& node, EnvPtr env);
+ObjectPtr evalProgram(std::vector<std::unique_ptr<Statement>> statements, EnvPtr env);
+ObjectPtr evalBlock(std::vector<std::unique_ptr<Statement>> statements, EnvPtr env);
+ObjectPtr evalPrefixExpr(const std::string& oprtr, const ObjectPtr& right);
+ObjectPtr evalInfixExpr(const std::string& oprtr, const ObjectPtr& left, const ObjectPtr& right);
+ObjectPtr evalBangOperator(const ObjectPtr& right);
+ObjectPtr evalMinusOperator(const ObjectPtr& right);
+ObjectPtr evalIntInfixExpr(const std::string& oprtr, const ObjectPtr& left, const ObjectPtr& right);
+ObjectPtr evalIfExpr(const ASTNodePtr& node, EnvPtr env);
+ObjectPtr evalIdentifier(const ASTNodePtr& node, EnvPtr env);
 
-std::unique_ptr<Object> error(const std::string& format);
+ObjectPtr applyFunction(ObjectPtr func, std::vector<ObjectPtr> args);
+ObjectPtr unwrapReturnValue(ObjectPtr obj);
 
-bool isTrue(const std::unique_ptr<Object>& obj);
-bool isError(const std::unique_ptr<Object>& obj);
+ObjectPtr error(const std::string& format);
+
+std::vector<ObjectPtr> evalExprs(std::vector<std::unique_ptr<Expr>> args, EnvPtr env);
+
+EnvPtr extendFunctionEnv(std::vector<Identifier> params, std::vector<ObjectPtr> args, EnvPtr env);
+
+bool isTrue(const ObjectPtr& obj);
+bool isError(const ObjectPtr& obj);
 
 } // evaluator

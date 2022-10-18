@@ -1,7 +1,7 @@
 #include "ast.h"
 
 // TODO: make it work also with pointer Nodes
-std::ostream& operator<< (std::ostream& out, Node& node) {
+std::ostream& operator<< (std::ostream& out, ASTNode& node) {
     out << node.toString();
     return out;
 }

@@ -13,6 +13,8 @@ enum node_type {
     NODE_BLOCK_STMNT,
     NODE_RETURN_STMNT,
     NODE_LET_STMNT,
+    NODE_FUNC,
+    NODE_CALL_EXPR,
     NODE_IF_EXPR,
     NODE_INT,
     NODE_IDENT,
@@ -26,9 +28,9 @@ class Identifier;
 class Statement;
 class BlockStatement;
 
-class Node {
+class ASTNode {
 public:
-    virtual ~Node() = default;
+    virtual ~ASTNode() = default;
 
     virtual const std::string tokenLiteral() const{ return ""; }
     virtual const std::string getIdentName() const { return ""; }
@@ -38,44 +40,39 @@ public:
     virtual std::unique_ptr<Expr> getLeft() { return nullptr; }
     virtual std::unique_ptr<Expr> getRight() { return nullptr; }
     virtual std::unique_ptr<Expr> getCondition() { return nullptr; }
+    virtual std::unique_ptr<Expr> getFunc() { return nullptr; }
     virtual std::unique_ptr<BlockStatement> getConsequence() { return nullptr; }
     virtual std::unique_ptr<BlockStatement> getAlternative() { return nullptr; }
+    virtual std::unique_ptr<BlockStatement> getBody() { return nullptr; }
 
+    virtual std::vector<Identifier> getParams() const { return {}; }
     virtual std::vector<std::unique_ptr<Statement>> getStatements() { return {}; }
+    virtual std::vector<std::unique_ptr<Expr>> getArgs() { return {}; }
 
     virtual int nodeType() const { return NODE_BASIC; }
     virtual int getIntValue() const { return -1; }
 
     virtual bool getBoolValue() const { return false; }
 
-    friend std::ostream& operator<< (std::ostream& out, Node& node);
+    friend std::ostream& operator<< (std::ostream& out, ASTNode& node);
 };
 
-class Expr: public Node {
+class Expr: public ASTNode {
 public:
     virtual ~Expr() = default;
 
-    virtual void expressionNode() const = 0;
-
-    virtual std::unique_ptr<Expr> getFunc() { return nullptr; }
     virtual std::unique_ptr<Expr> getArgAt(unsigned int index) { (void)index; return nullptr;}
-
-    virtual std::unique_ptr<BlockStatement> getBody() { return nullptr; }
-
-    virtual std::vector<Identifier> getParams() const { return {}; }
     
     virtual size_t getArgSize() const { return 0; }
 };
 
-class Statement: public Node {
+class Statement: public ASTNode {
 public:
     virtual ~Statement() = default;
-
-    virtual void statementNode() const = 0;
 };
 
 // Root node of AST
-class Program: public Node {
+class Program: public ASTNode {
     std::vector<std::unique_ptr<Statement>> m_statements;
 
 public:
@@ -100,7 +97,6 @@ public:
     Identifier(const Token& tok, const std::string& value);
     Identifier() = default;
 
-    void expressionNode() const override {}
     std::string toString() const override;
 
     const std::string tokenLiteral() const override { return m_tok.literal; }
@@ -116,7 +112,6 @@ class IntegerLiteral: public Expr {
 public:
     IntegerLiteral(const Token& tok);
 
-    void expressionNode() const override {}
     void setValue(int value) { m_value = value; }
 
     std::string toString() const override { return m_tok.literal; }
@@ -132,8 +127,6 @@ class BoolExpr: public Expr {
 
 public:
     BoolExpr(const Token& tok, bool value);
-
-    void expressionNode() const override {}
 
     std::string toString() const override { return m_tok.literal; }
     const std::string tokenLiteral() const override { return m_tok.literal; }
@@ -151,7 +144,6 @@ class PrefixExpr: public Expr {
 public:
     PrefixExpr(const Token& tok, const std::string& oprtr);
 
-    void expressionNode() const override {}
     void setRight(std::unique_ptr<Expr> right) { m_right = std::move(right); }
 
     std::string toString() const override;
@@ -171,7 +163,6 @@ class InfixExpr: public Expr {
 public:
     InfixExpr(const Token& tok, std::unique_ptr<Expr> left, const std::string& oprtr);
 
-    void expressionNode() const override {}
     void setRight(std::unique_ptr<Expr> right) { m_right = std::move(right); }
 
     std::string toString() const override;
@@ -192,7 +183,6 @@ class IfExpr: public Expr {
 public:
     IfExpr(Token tok);
 
-    void expressionNode() const override {}
     void setCondition(std::unique_ptr<Expr> condition) { m_condition = std::move(condition); }
     void setConsequence(std::unique_ptr<BlockStatement> consequence) { m_consequence = std::move(consequence); }
     void setAlternative(std::unique_ptr<BlockStatement> alternative) { m_alternative = std::move(alternative); }
@@ -215,7 +205,6 @@ class FuncLiteral: public Expr {
 public:
     FuncLiteral(const Token& tok);
 
-    void expressionNode() const override {}
     void setParams(const std::vector<Identifier>& params) { m_params = params; }
     void setBody(std::unique_ptr<BlockStatement> body) { m_body = std::move(body); }
 
@@ -225,6 +214,8 @@ public:
     std::unique_ptr<BlockStatement> getBody() override { return std::move(m_body); }
 
     std::vector<Identifier> getParams() const override { return m_params; }
+
+    int nodeType() const override { return NODE_FUNC; }
 };
 
 class CallExpr: public Expr {
@@ -235,17 +226,19 @@ class CallExpr: public Expr {
 public:
     CallExpr(const Token& tok, std::unique_ptr<Expr> func);
 
-    void expressionNode() const override {}
     void setArgs(std::vector<std::unique_ptr<Expr>> args) { m_args = std::move(args); }
 
     std::string toString() const override;
     const std::string tokenLiteral() const override { return m_tok.literal; }
 
     std::unique_ptr<Expr> getFunc() override { return std::move(m_func); }
+    std::unique_ptr<Expr> getArgAt(unsigned int index) override;
 
     size_t getArgSize() const override { return m_args.size(); }
 
-    std::unique_ptr<Expr> getArgAt(unsigned int index) override;
+    virtual std::vector<std::unique_ptr<Expr>> getArgs() override { return std::move(m_args); }
+
+    int nodeType() const override { return NODE_CALL_EXPR; }
 };
 
 class LetStatement: public Statement {
@@ -260,7 +253,6 @@ public:
     const std::string tokenLiteral() const override { return m_tok.literal; }
     const std::string getIdentName() const override { return m_name.getIdentName(); }
 
-    void statementNode() const override {}
     void setName(const Identifier ident) { m_name = ident; }
     void setValue(std::unique_ptr<Expr> expr) { m_value = std::move(expr); }
 
@@ -276,7 +268,6 @@ class ReturnStatement: public Statement {
 public:
     ReturnStatement(const Token& tok);
 
-    void statementNode() const override {}
     void setValue(std::unique_ptr<Expr> expr) { m_value = std::move(expr); }
     
     std::string toString() const override;
@@ -294,7 +285,6 @@ class ExprStatement: public Statement {
 public:
     ExprStatement(const Token& tok);
 
-    void statementNode() const override {}
     void setExpr(std::unique_ptr<Expr> expr) { m_expr = std::move(expr); }
 
     std::string toString() const override;
@@ -313,7 +303,6 @@ class BlockStatement: public Statement {
 public:
     BlockStatement(const Token& tok);
 
-    void statementNode() const override {}
     void pushStatement(std::unique_ptr<Statement> statement);
 
     std::string toString() const override;
@@ -325,3 +314,5 @@ public:
 
     std::vector<std::unique_ptr<Statement>> getStatements() override { return std::move(m_statements); }
 };
+
+typedef std::unique_ptr<ASTNode> ASTNodePtr;

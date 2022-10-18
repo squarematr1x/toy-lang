@@ -2,7 +2,7 @@
 
 namespace evaluator {
 
-std::unique_ptr<Object> eval(const std::unique_ptr<Node>& node, Env& env) {
+ObjectPtr eval(const ASTNodePtr& node, EnvPtr env) {
     switch (node->nodeType())
     {
     case NODE_PROGRAM:
@@ -12,9 +12,9 @@ std::unique_ptr<Object> eval(const std::unique_ptr<Node>& node, Env& env) {
     case NODE_IDENT:
         return evalIdentifier(node, env);
     case NODE_INT:   
-        return std::make_unique<Integer>(node->getIntValue());
+        return std::make_shared<Integer>(node->getIntValue());
     case NODE_BOOL:
-        return std::make_unique<Bool>(node->getBoolValue());
+        return std::make_shared<Bool>(node->getBoolValue());
     case NODE_PREFIX: {
         auto right = eval(node->getRight(), env);
         if (isError(right))
@@ -42,22 +42,38 @@ std::unique_ptr<Object> eval(const std::unique_ptr<Node>& node, Env& env) {
         if (isError(value))
             return value;
 
-        return std::make_unique<Return>(std::move(value));
+        return std::make_shared<Return>(std::move(value));
     }
     case NODE_LET_STMNT: {
         auto value = eval(node->getExpr(), env);
         if (isError(value))
             return value;
 
-        env.set(node->getIdentName(), std::move(value));
+        return env->set(node->getIdentName(), std::move(value));
+    }
+    case NODE_CALL_EXPR: {
+        auto func = eval(node->getFunc(), env);
+        if (isError(func))
+            return func;
+        
+        auto args = evalExprs(node->getArgs(), env);
+        if (args.size() == 1 && isError(args[0]))
+            return std::move(args[0]);
+        
+        return applyFunction(std::move(func), std::move(args));
+    }
+    case NODE_FUNC: {
+        auto params = node->getParams();
+        auto body = node->getBody();
+        return std::make_shared<Function>(params, std::move(body), env);
     }
     default:
-        return std::make_unique<NIL>();
+        return std::make_shared<NIL>();
     }
 }
 
-std::unique_ptr<Object> evalProgram(std::vector<std::unique_ptr<Statement>> statements, Env& env) {
-    std::unique_ptr<Object> result = nullptr;
+ObjectPtr evalProgram(std::vector<std::unique_ptr<Statement>> statements, EnvPtr env) {
+    std::shared_ptr<Object> result = nullptr;
 
     for (auto& statement: statements) {
         result = eval(std::move(statement), env);
@@ -71,8 +87,8 @@ std::unique_ptr<Object> evalProgram(std::vector<std::unique_ptr<Statement>> stat
     return result;
 }
 
-std::unique_ptr<Object> evalBlock(std::vector<std::unique_ptr<Statement>> statements, Env& env) {
-    std::unique_ptr<Object> result = nullptr;
+ObjectPtr evalBlock(std::vector<std::unique_ptr<Statement>> statements, EnvPtr env) {
+    std::shared_ptr<Object> result = nullptr;
 
     for (auto& statement: statements) {
         result = eval(std::move(statement), env);
@@ -84,7 +100,7 @@ std::unique_ptr<Object> evalBlock(std::vector<std::unique_ptr<Statement>> statem
     return result;
 }
 
-std::unique_ptr<Object> evalPrefixExpr(const std::string& oprtr, const std::unique_ptr<Object>& right) {
+ObjectPtr evalPrefixExpr(const std::string& oprtr, const ObjectPtr& right) {
     if (oprtr == "!")
         return evalBangOperator(right);
     if (oprtr == "-")
@@ -93,7 +109,7 @@ std::unique_ptr<Object> evalPrefixExpr(const std::string& oprtr, const std::uniq
     return std::make_unique<Error>(("unknown operator: " + oprtr + right->typeString()));
 }
 
-std::unique_ptr<Object> evalInfixExpr(const std::string& oprtr, const std::unique_ptr<Object>& left, const std::unique_ptr<Object>& right) {
+ObjectPtr evalInfixExpr(const std::string& oprtr, const ObjectPtr& left, const ObjectPtr& right) {
     if (left->getType() == OBJ_INT && right->getType() == OBJ_INT)
         return evalIntInfixExpr(oprtr, left, right);
     if (oprtr == "==")
@@ -104,7 +120,7 @@ std::unique_ptr<Object> evalInfixExpr(const std::string& oprtr, const std::uniqu
     return std::make_unique<Error>(("unknown operator: " + left->typeString() + oprtr + right->typeString()));
 }
 
-std::unique_ptr<Object> evalBangOperator(const std::unique_ptr<Object>& right) {
+ObjectPtr evalBangOperator(const ObjectPtr& right) {
     switch (right->getType())
     {
     case OBJ_BOOL:
@@ -116,7 +132,7 @@ std::unique_ptr<Object> evalBangOperator(const std::unique_ptr<Object>& right) {
     }
 }
 
-std::unique_ptr<Object> evalMinusOperator(const std::unique_ptr<Object>& right) {
+ObjectPtr evalMinusOperator(const ObjectPtr& right) {
     if (right->getType() != OBJ_INT)
         return std::make_unique<Error>(("unknown operator: -" + right->typeString()));
     
@@ -125,7 +141,7 @@ std::unique_ptr<Object> evalMinusOperator(const std::unique_ptr<Object>& right) 
     return std::make_unique<Integer>(-value);
 }
 
-std::unique_ptr<Object> evalIntInfixExpr(const std::string& oprtr, const std::unique_ptr<Object>& left, const std::unique_ptr<Object>& right) {
+ObjectPtr evalIntInfixExpr(const std::string& oprtr, const ObjectPtr& left, const ObjectPtr& right) {
     int left_value = left->getIntVal();
     int right_value = right->getIntVal();
 
@@ -149,7 +165,7 @@ std::unique_ptr<Object> evalIntInfixExpr(const std::string& oprtr, const std::un
     return std::make_unique<Error>(("unknown operator: " + left->typeString() + oprtr + right->typeString()));
 }
 
-std::unique_ptr<Object> evalIfExpr(const std::unique_ptr<Node>& node, Env& env) {
+ObjectPtr evalIfExpr(const ASTNodePtr& node, EnvPtr env) {
     auto cond = eval(node->getCondition(), env);
     if (isError(cond))
         return cond;
@@ -164,8 +180,14 @@ std::unique_ptr<Object> evalIfExpr(const std::unique_ptr<Node>& node, Env& env) 
     return std::make_unique<NIL>();
 }
 
-std::unique_ptr<Object> evalIdentifier(const std::unique_ptr<Node>& node, Env& env) {
-    auto value = env.get(node->getIdentName());
+ObjectPtr evalIdentifier(const ASTNodePtr& node, EnvPtr env) {
+    if (!node)
+        std::cout << "NOT NODE\n";
+
+    if (node->getIdentName() == "")
+        std::cout << "IDENT NAME = ''n";
+
+    auto value = env->get(node->getIdentName());
 
     if (!value)
         return std::make_unique<Error>(("identifier not found: " + node->getIdentName()));
@@ -173,11 +195,54 @@ std::unique_ptr<Object> evalIdentifier(const std::unique_ptr<Node>& node, Env& e
     return value;
 }
 
-bool isTrue(const std::unique_ptr<Object>& obj) {
+std::vector<ObjectPtr> evalExprs(std::vector<std::unique_ptr<Expr>> args, EnvPtr env) {
+    std::vector<ObjectPtr> result;
+
+    for (auto& arg : args) {
+        auto evaluated = eval(std::move(arg), env);
+        result.push_back(std::move(evaluated));
+
+        if (isError(evaluated))
+            return result;
+    }
+
+    return result;
+}
+
+ObjectPtr applyFunction(ObjectPtr func, std::vector<ObjectPtr> args) {
+    if (func->getType() != OBJ_FUNC)
+        return std::make_unique<Error>(("not a function: " + func->typeString()));
+    
+    auto extended_env = extendFunctionEnv(func->getParams(), std::move(args), func->getEnv());
+    // auto evaluated = eval(func->getBody(), extended_env);
+    auto evaluated = evalBlock(func->getBody()->getStatements(), extended_env);
+
+    return unwrapReturnValue(std::move(evaluated));
+}
+
+
+EnvPtr extendFunctionEnv(std::vector<Identifier> params, std::vector<ObjectPtr> args, EnvPtr env) {
+    unsigned int i = 0;
+    for (const auto& param : params) {
+        env->set(param.getIdentName(), std::move(args[i]));
+        i++;
+    }
+
+    return env;
+}
+
+ObjectPtr unwrapReturnValue(ObjectPtr obj) {
+    if (obj->getType() == OBJ_RETURN)
+        return obj->getObjValue();
+    
+    return obj;
+}
+
+bool isTrue(const ObjectPtr& obj) {
     return obj->getBoolVal();
 }
 
-bool isError(const std::unique_ptr<Object>& obj) {
+bool isError(const ObjectPtr& obj) {
     if (obj)
         return obj->getType() == OBJ_ERROR;
     

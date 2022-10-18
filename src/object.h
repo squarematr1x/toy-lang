@@ -1,15 +1,17 @@
 #pragma once
 
-#include <string>
-#include <memory>
+#include "ast.h"
 
 enum object_type {
     OBJ_INT,
     OBJ_BOOL,
     OBJ_RETURN,
+    OBJ_FUNC,
     OBJ_NIL,
     OBJ_ERROR
 };
+
+class Env;
 
 struct Object {
     std::string type;
@@ -21,9 +23,14 @@ struct Object {
 
     virtual int getType() const { return -1; }
     virtual int getIntVal() const { return 0; }
+
     virtual bool getBoolVal() const { return true; }
 
-    virtual std::unique_ptr<Object> getObjValue() { return nullptr; }
+    virtual std::shared_ptr<Object> getObjValue() { return nullptr; }
+    virtual std::shared_ptr<BlockStatement> getBody() { return nullptr; }
+    virtual std::shared_ptr<Env> getEnv() { return nullptr; }
+
+    virtual const std::vector<Identifier> getParams() const { return {}; }
 
     virtual ~Object() = default;
 };
@@ -57,16 +64,36 @@ struct Bool: public Object {
 };
 
 struct Return: public Object {
-    std::unique_ptr<Object> value;
+    std::shared_ptr<Object> value;
 
-    Return(std::unique_ptr<Object> value_in) : value(std::move(value_in)) {}
+    Return(std::shared_ptr<Object> value_in) : value(value_in) {}
 
     const std::string inspect() const override { return value->inspect(); }
     const std::string typeString() const override { return "RETURN"; }
 
     int getType() const override { return OBJ_RETURN; }
 
-    std::unique_ptr<Object> getObjValue() override { return std::move(value); }
+    std::shared_ptr<Object> getObjValue() override { return value; }
+};
+
+struct Function: public Object {
+    std::vector<Identifier> params;
+    std::shared_ptr<BlockStatement> body;
+    std::shared_ptr<Env> env;
+
+    Function(std::vector<Identifier> params, std::shared_ptr<BlockStatement> body, std::shared_ptr<Env> env)
+        : params(params), body(body), env(env) {
+    }
+
+    const std::string inspect() const override;
+    const std::string typeString() const override { return "FUNC"; }
+
+    std::shared_ptr<BlockStatement> getBody() override { return body; }
+    std::shared_ptr<Env> getEnv() override { return env; }
+
+    const std::vector<Identifier> getParams() const override { return params; }
+
+    int getType() const override { return OBJ_FUNC; }
 };
 
 struct NIL: public Object {
@@ -88,3 +115,5 @@ struct Error: public Object {
 
     int getType() const override { return OBJ_ERROR; }
 };
+
+typedef std::shared_ptr<Object> ObjectPtr;

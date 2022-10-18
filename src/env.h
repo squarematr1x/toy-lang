@@ -1,13 +1,21 @@
 #pragma once
 
 #include <map>
+#include <memory>
+#include <string>
 
 #include "object.h"
 
+typedef std::shared_ptr<Env> EnvPtr;
+
 class Env {
-    std::map<std::string, std::unique_ptr<Object>> m_store;
+    std::map<std::string, ObjectPtr> m_store;
+    EnvPtr m_outer_env;
 
 public:
-    std::unique_ptr<Object> get(const std::string& name);
-    std::unique_ptr<Object> set(const std::string& name, std::unique_ptr<Object> value);
+    Env() = default;
+    Env(EnvPtr outer_env);
+
+    ObjectPtr get(const std::string& name);
+    ObjectPtr set(const std::string& name, ObjectPtr value);
 };
