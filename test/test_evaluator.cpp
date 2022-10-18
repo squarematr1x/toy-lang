@@ -29,7 +29,7 @@ TEST(EvaluatorTest, TestEvalIntegerExpr) {
     };
 
     for (const auto& test : tests) {
-        Env env;
+        EnvPtr env = std::make_shared<Env>();
         Lexer lexer(test.input);
         Parser parser(lexer);
         auto obj = evaluator::eval(parser.parseProgram(), env);
@@ -63,7 +63,7 @@ TEST(EvaluatorTest, TestEvalBoolExpr) {
     };
 
     for (const auto& test : tests) {
-        Env env;
+        EnvPtr env = std::make_shared<Env>();
         Lexer lexer(test.input);
         Parser parser(lexer);
         auto obj = evaluator::eval(parser.parseProgram(), env);
@@ -84,7 +84,7 @@ TEST(EvaluatorTest, TestEvalBangOperator) {
     };
 
     for (const auto& test : tests) {
-        Env env;
+        EnvPtr env = std::make_shared<Env>();
         Lexer lexer(test.input);
         Parser parser(lexer);
         auto obj = evaluator::eval(parser.parseProgram(), env);
@@ -109,7 +109,7 @@ TEST(EvaluatorTest, TestEvalIfElseExpr) {
     };
 
     for (const auto& test : int_out_tests) {
-        Env env;
+        EnvPtr env = std::make_shared<Env>();
         Lexer lexer(test.input);
         Parser parser(lexer);
         auto obj = evaluator::eval(parser.parseProgram(), env);
@@ -119,7 +119,7 @@ TEST(EvaluatorTest, TestEvalIfElseExpr) {
     }
 
     for (const auto& test : nil_out_tests) {
-        Env env;
+        EnvPtr env = std::make_shared<Env>();
         Lexer lexer(test.input);
         Parser parser(lexer);
         auto obj = evaluator::eval(parser.parseProgram(), env);
@@ -140,7 +140,7 @@ TEST(EvaluatorTest, TestEvalReturnStatements) {
     };
 
     for (const auto& test : tests) {
-        Env env;
+        EnvPtr env = std::make_shared<Env>();
         Lexer lexer(test.input);
         Parser parser(lexer);
         auto obj = evaluator::eval(parser.parseProgram(), env);
@@ -161,7 +161,7 @@ TEST(EvaluatorTest, TestErrorHandling) {
     };
 
     for (const auto& test : tests) {
-        Env env;
+        EnvPtr env = std::make_shared<Env>();
         Lexer lexer(test.input);
         Parser parser(lexer);
         auto obj = evaluator::eval(parser.parseProgram(), env);
@@ -180,7 +180,41 @@ TEST(EvaluatorTest, TestEvalLetStatements) {
     };
 
     for (const auto& test : tests) {
-        Env env;
+        EnvPtr env = std::make_shared<Env>();
+        Lexer lexer(test.input);
+        Parser parser(lexer);
+        auto obj = evaluator::eval(parser.parseProgram(), env);
+        EXPECT_EQ(obj->getIntVal(), test.expected);
+        EXPECT_EQ(obj->getType(), OBJ_INT);
+    }
+}
+
+TEST(EvaluatorTest, TestEvalFunctionObject) {
+    const std::string input = "func(a) { a + 21; };";
+
+    EnvPtr env;
+    Lexer lexer(input);
+    Parser parser(lexer);
+    auto obj = evaluator::eval(parser.parseProgram(), env);
+
+    EXPECT_EQ(obj->getType(), OBJ_FUNC);
+    EXPECT_EQ(obj->getParams().size(), 1);
+    EXPECT_EQ(obj->getParams()[0].getIdentName(), "a");
+    EXPECT_EQ(obj->getBody()->toString(), "(a + 21)");
+}
+
+TEST(EvaluatorTest, TestEvalFunctionApp) {
+    const std::vector<EvalTest<int>> tests = {
+        {"let echo = func(x) { x; }; echo(7);", 7},
+        {"let echo = func(x) { return x; }; echo(7);", 7},
+        {"let twice = func(x) { return x*2; }; twice(7);", 14},
+        {"let add = func(a, b) { a + b; }; add(5, 4);", 9},
+        {"let add = func(a, b) { a + b; }; add(5 + 4, add(1, 2));", 12}, // <- FIXME: This fails, debug and fix it
+        {"func(x) { x; }(8);", 8}
+    };
+
+    for (const auto& test : tests) {
+        EnvPtr env = std::make_shared<Env>();
         Lexer lexer(test.input);
         Parser parser(lexer);
         auto obj = evaluator::eval(parser.parseProgram(), env);
