@@ -1,5 +1,24 @@
 # toy-lang
-Currently toy-lang is A tree-walking interpreter, which transpiles to C++. In the future, for instance, a virtual machine could be used to increase performance.
+toy-lang is currently a tree-walking interpreter, which transpiles to C++. In the future, for instance, a VM could be used to increase performance.
+
+### Quick demo of the REPL
+
+```
+>> let add = func(x, y, z) { x + y + z; };
+>> add(10,5,-1)
+14
+>> let min = func(a, b) { if (a < b) { a; } else { b; } };
+>> min(5,1)
+1
+>> min(15, add(2,9,5))
+15
+>> let a = 4;
+>> let b = 4;
+>> a == b
+true
+>> 9*5 > 455-2
+false
+```
 
 ### Build and run
 
@@ -15,7 +34,7 @@ When recursion is used a lot, LLDB debugger can become quite convenient. Debug w
 
 ### Detect memory issues with Valgrind
 
-Use: ```make run-with-memory-check```.
+Use: ```make run-with-memory-check```. Smart pointers don't eliminate all memory issues!
 
 ### Literature
 
