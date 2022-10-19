@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iostream>
+
 #include "ast.h"
 
 enum object_type {
@@ -28,7 +30,7 @@ struct Object {
 
     virtual std::shared_ptr<Object> getObjValue() { return nullptr; }
     virtual std::shared_ptr<BlockStatement> getBody() { return nullptr; }
-    virtual std::shared_ptr<Env> getEnv() { return nullptr; }
+    virtual std::weak_ptr<Env> getEnv() { return std::weak_ptr<Env>(); }
 
     virtual const std::vector<Identifier> getParams() const { return {}; }
 
@@ -79,7 +81,7 @@ struct Return: public Object {
 struct Function: public Object {
     std::vector<Identifier> params;
     std::shared_ptr<BlockStatement> body;
-    std::shared_ptr<Env> env;
+    std::weak_ptr<Env> env;
 
     Function(std::vector<Identifier> params, std::shared_ptr<BlockStatement> body, std::shared_ptr<Env> env)
         : params(params), body(body), env(env) {
@@ -89,7 +91,7 @@ struct Function: public Object {
     const std::string typeString() const override { return "FUNC"; }
 
     std::shared_ptr<BlockStatement> getBody() override { return body; }
-    std::shared_ptr<Env> getEnv() override { return env; }
+    std::weak_ptr<Env> getEnv() override { return env; }
 
     const std::vector<Identifier> getParams() const override { return params; }
 

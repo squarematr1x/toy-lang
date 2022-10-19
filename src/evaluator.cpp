@@ -42,14 +42,14 @@ ObjectPtr eval(const ASTNodePtr& node, EnvPtr env) {
         if (isError(value))
             return value;
 
-        return std::make_shared<Return>(std::move(value));
+        return std::make_shared<Return>(value);
     }
     case NODE_LET_STMNT: {
         auto value = eval(node->getExpr(), env);
         if (isError(value))
             return value;
 
-        return env->set(node->getIdentName(), std::move(value));
+        return env->set(node->getIdentName(), value);
     }
     case NODE_CALL_EXPR: {
         auto func = eval(node->getFunc(), env);
@@ -58,9 +58,9 @@ ObjectPtr eval(const ASTNodePtr& node, EnvPtr env) {
         
         auto args = evalExprs(node->getArgs(), env);
         if (args.size() == 1 && isError(args[0]))
-            return std::move(args[0]);
+            return args[0];
         
-        return applyFunction(std::move(func), std::move(args));
+        return applyFunction(func, args, env);
     }
     case NODE_FUNC: {
         auto params = node->getParams();
@@ -181,12 +181,6 @@ ObjectPtr evalIfExpr(const ASTNodePtr& node, EnvPtr env) {
 }
 
 ObjectPtr evalIdentifier(const ASTNodePtr& node, EnvPtr env) {
-    if (!node)
-        std::cout << "NOT NODE\n";
-
-    if (node->getIdentName() == "")
-        std::cout << "IDENT NAME = ''n";
-
     auto value = env->get(node->getIdentName());
 
     if (!value)
@@ -200,7 +194,7 @@ std::vector<ObjectPtr> evalExprs(std::vector<std::unique_ptr<Expr>> args, EnvPtr
 
     for (auto& arg : args) {
         auto evaluated = eval(std::move(arg), env);
-        result.push_back(std::move(evaluated));
+        result.push_back(evaluated);
 
         if (isError(evaluated))
             return result;
@@ -209,22 +203,21 @@ std::vector<ObjectPtr> evalExprs(std::vector<std::unique_ptr<Expr>> args, EnvPtr
     return result;
 }
 
-ObjectPtr applyFunction(ObjectPtr func, std::vector<ObjectPtr> args) {
+ObjectPtr applyFunction(ObjectPtr func, std::vector<ObjectPtr> args, EnvPtr env) {
     if (func->getType() != OBJ_FUNC)
         return std::make_unique<Error>(("not a function: " + func->typeString()));
     
-    auto extended_env = extendFunctionEnv(func->getParams(), std::move(args), func->getEnv());
-    // auto evaluated = eval(func->getBody(), extended_env);
+    auto extended_env = extendFunctionEnv(func->getParams(), args, env);
     auto evaluated = evalBlock(func->getBody()->getStatements(), extended_env);
 
-    return unwrapReturnValue(std::move(evaluated));
+    return unwrapReturnValue(evaluated);
 }
 
 
 EnvPtr extendFunctionEnv(std::vector<Identifier> params, std::vector<ObjectPtr> args, EnvPtr env) {
     unsigned int i = 0;
     for (const auto& param : params) {
-        env->set(param.getIdentName(), std::move(args[i]));
+        env->set(param.getIdentName(), args[i]);
         i++;
     }
 

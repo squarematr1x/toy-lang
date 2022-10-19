@@ -18,7 +18,7 @@ ObjectPtr evalIntInfixExpr(const std::string& oprtr, const ObjectPtr& left, cons
 ObjectPtr evalIfExpr(const ASTNodePtr& node, EnvPtr env);
 ObjectPtr evalIdentifier(const ASTNodePtr& node, EnvPtr env);
 
-ObjectPtr applyFunction(ObjectPtr func, std::vector<ObjectPtr> args);
+ObjectPtr applyFunction(ObjectPtr func, std::vector<ObjectPtr> args, EnvPtr env);
 ObjectPtr unwrapReturnValue(ObjectPtr obj);
 
 ObjectPtr error(const std::string& format);
