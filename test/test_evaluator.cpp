@@ -205,12 +205,16 @@ TEST(EvaluatorTest, TestEvalFunctionObject) {
 
 TEST(EvaluatorTest, TestEvalFunctionApp) {
     const std::vector<EvalTest<int>> tests = {
+        {"let test = func() { return -12; }; test();", -12},
         {"let echo = func(x) { x; }; echo(7);", 7},
         {"let echo = func(x) { return x; }; echo(7);", 7},
         {"let twice = func(x) { return x*2; }; twice(7);", 14},
         {"let add = func(a, b) { a + b; }; add(5, 4);", 9},
-        {"let add = func(a, b) { a + b; }; add(5 + 4, add(1, 2));", 12}, // <- FIXME: This fails, debug and fix it
-        {"func(x) { x; }(8);", 8}
+        {"let add = func(a, b) { a + b; }; add(5 + 4, add(1, 2));", 12},
+        {"func(x) { x; }(8);", 8},
+        {"let newAdder = func(x) { func(y) { x + y }; }; let addTwo = newAdder(2); addTwo(2);", 4},
+        {"let a = func(x) { x*x; }; let b = func(x) { if (x > 10) { 1; } else {  0; } }; b(a(4));", 1},
+        {"let a = func(x) { x*x; }; let b = func(x) { if (x > 10) { 1; } else {  0; } }; b(a(3));", 0}
     };
 
     for (const auto& test : tests) {

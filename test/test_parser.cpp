@@ -65,15 +65,15 @@ TEST(ParserTest, TestToString) {
     const Token first_ident_tok = Token(TOK_IDENT, "test");
     const Token second_ident_tok = Token(TOK_IDENT, "x");
 
-    auto let_stmnt = std::make_unique<LetStatement>(let_tok);
+    auto let_stmnt = std::make_shared<LetStatement>(let_tok);
     auto first_ident_stmnt = Identifier(first_ident_tok, "test");
-    auto second_ident_stmnt = std::make_unique<Identifier>(second_ident_tok, "x");
+    auto second_ident_stmnt = std::make_shared<Identifier>(second_ident_tok, "x");
 
     let_stmnt->setName(first_ident_stmnt);
-    let_stmnt->setValue(std::move(second_ident_stmnt));
+    let_stmnt->setValue((second_ident_stmnt));
 
-    auto program = std::make_unique<Program>();
-    program->pushStatement(std::move(let_stmnt));
+    auto program = std::make_shared<Program>();
+    program->pushStatement((let_stmnt));
 
     EXPECT_EQ(program->toString(), expected_str);
 }
