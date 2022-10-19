@@ -8,8 +8,8 @@
 namespace evaluator {
 
 ObjectPtr eval(const ASTNodePtr& node, EnvPtr env);
-ObjectPtr evalProgram(std::vector<std::unique_ptr<Statement>> statements, EnvPtr env);
-ObjectPtr evalBlock(std::vector<std::unique_ptr<Statement>> statements, EnvPtr env);
+ObjectPtr evalProgram(std::vector<std::shared_ptr<Statement>> statements, EnvPtr env);
+ObjectPtr evalBlock(std::vector<std::shared_ptr<Statement>> statements, EnvPtr env);
 ObjectPtr evalPrefixExpr(const std::string& oprtr, const ObjectPtr& right);
 ObjectPtr evalInfixExpr(const std::string& oprtr, const ObjectPtr& left, const ObjectPtr& right);
 ObjectPtr evalBangOperator(const ObjectPtr& right);
@@ -23,7 +23,7 @@ ObjectPtr unwrapReturnValue(ObjectPtr obj);
 
 ObjectPtr error(const std::string& format);
 
-std::vector<ObjectPtr> evalExprs(std::vector<std::unique_ptr<Expr>> args, EnvPtr env);
+std::vector<ObjectPtr> evalExprs(std::vector<std::shared_ptr<Expr>> args, EnvPtr env);
 
 EnvPtr extendFunctionEnv(std::vector<Identifier> params, std::vector<ObjectPtr> args, EnvPtr env);
 

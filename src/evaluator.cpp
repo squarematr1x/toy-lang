@@ -65,18 +65,18 @@ ObjectPtr eval(const ASTNodePtr& node, EnvPtr env) {
     case NODE_FUNC: {
         auto params = node->getParams();
         auto body = node->getBody();
-        return std::make_shared<Function>(params, std::move(body), env);
+        return std::make_shared<Function>(params, body, env);
     }
     default:
         return std::make_shared<NIL>();
     }
 }
 
-ObjectPtr evalProgram(std::vector<std::unique_ptr<Statement>> statements, EnvPtr env) {
+ObjectPtr evalProgram(std::vector<std::shared_ptr<Statement>> statements, EnvPtr env) {
     std::shared_ptr<Object> result = nullptr;
 
     for (auto& statement: statements) {
-        result = eval(std::move(statement), env);
+        result = eval(statement, env);
 
         if (result->getType() == OBJ_RETURN)
             return result->getObjValue();
@@ -87,11 +87,11 @@ ObjectPtr evalProgram(std::vector<std::unique_ptr<Statement>> statements, EnvPtr
     return result;
 }
 
-ObjectPtr evalBlock(std::vector<std::unique_ptr<Statement>> statements, EnvPtr env) {
+ObjectPtr evalBlock(std::vector<std::shared_ptr<Statement>> statements, EnvPtr env) {
     std::shared_ptr<Object> result = nullptr;
 
     for (auto& statement: statements) {
-        result = eval(std::move(statement), env);
+        result = eval(statement, env);
 
         if (result->getType() == OBJ_RETURN || result->getType() == OBJ_ERROR)
             return result;
@@ -106,39 +106,39 @@ ObjectPtr evalPrefixExpr(const std::string& oprtr, const ObjectPtr& right) {
     if (oprtr == "-")
         return evalMinusOperator(right);
 
-    return std::make_unique<Error>(("unknown operator: " + oprtr + right->typeString()));
+    return std::make_shared<Error>(("unknown operator: " + oprtr + right->typeString()));
 }
 
 ObjectPtr evalInfixExpr(const std::string& oprtr, const ObjectPtr& left, const ObjectPtr& right) {
     if (left->getType() == OBJ_INT && right->getType() == OBJ_INT)
         return evalIntInfixExpr(oprtr, left, right);
     if (oprtr == "==")
-        return std::make_unique<Bool>(left->getBoolVal() == right->getBoolVal());
+        return std::make_shared<Bool>(left->getBoolVal() == right->getBoolVal());
     if (oprtr == "!=")
-        return std::make_unique<Bool>(left->getBoolVal() != right->getBoolVal());
+        return std::make_shared<Bool>(left->getBoolVal() != right->getBoolVal());
 
-    return std::make_unique<Error>(("unknown operator: " + left->typeString() + oprtr + right->typeString()));
+    return std::make_shared<Error>(("unknown operator: " + left->typeString() + oprtr + right->typeString()));
 }
 
 ObjectPtr evalBangOperator(const ObjectPtr& right) {
     switch (right->getType())
     {
     case OBJ_BOOL:
-        return std::make_unique<Bool>(!right->getBoolVal());
+        return std::make_shared<Bool>(!right->getBoolVal());
     case OBJ_NIL:
-        return std::make_unique<Bool>(true);
+        return std::make_shared<Bool>(true);
     default:
-        return std::make_unique<Bool>(false);
+        return std::make_shared<Bool>(false);
     }
 }
 
 ObjectPtr evalMinusOperator(const ObjectPtr& right) {
     if (right->getType() != OBJ_INT)
-        return std::make_unique<Error>(("unknown operator: -" + right->typeString()));
+        return std::make_shared<Error>(("unknown operator: -" + right->typeString()));
     
     int value = right->getIntVal();
 
-    return std::make_unique<Integer>(-value);
+    return std::make_shared<Integer>(-value);
 }
 
 ObjectPtr evalIntInfixExpr(const std::string& oprtr, const ObjectPtr& left, const ObjectPtr& right) {
@@ -146,23 +146,23 @@ ObjectPtr evalIntInfixExpr(const std::string& oprtr, const ObjectPtr& left, cons
     int right_value = right->getIntVal();
 
     if (oprtr == "+")
-        return std::make_unique<Integer>(left_value + right_value);
+        return std::make_shared<Integer>(left_value + right_value);
     if (oprtr == "-")
-        return std::make_unique<Integer>(left_value - right_value);
+        return std::make_shared<Integer>(left_value - right_value);
     if (oprtr == "*")
-        return std::make_unique<Integer>(left_value * right_value);
+        return std::make_shared<Integer>(left_value * right_value);
     if (oprtr == "/")
-        return std::make_unique<Integer>(left_value / right_value);
+        return std::make_shared<Integer>(left_value / right_value);
     if (oprtr == "<")
-        return std::make_unique<Bool>(left_value < right_value);
+        return std::make_shared<Bool>(left_value < right_value);
     if (oprtr == ">")
-        return std::make_unique<Bool>(left_value > right_value);
+        return std::make_shared<Bool>(left_value > right_value);
     if (oprtr == "==")
-        return std::make_unique<Bool>(left_value == right_value);
+        return std::make_shared<Bool>(left_value == right_value);
     if (oprtr == "!=")
-        return std::make_unique<Bool>(left_value != right_value);
+        return std::make_shared<Bool>(left_value != right_value);
 
-    return std::make_unique<Error>(("unknown operator: " + left->typeString() + oprtr + right->typeString()));
+    return std::make_shared<Error>(("unknown operator: " + left->typeString() + oprtr + right->typeString()));
 }
 
 ObjectPtr evalIfExpr(const ASTNodePtr& node, EnvPtr env) {
@@ -175,25 +175,25 @@ ObjectPtr evalIfExpr(const ASTNodePtr& node, EnvPtr env) {
 
     auto alt = node->getAlternative();
     if (alt)
-        return eval(std::move(alt), env);
+        return eval(alt, env);
 
-    return std::make_unique<NIL>();
+    return std::make_shared<NIL>();
 }
 
 ObjectPtr evalIdentifier(const ASTNodePtr& node, EnvPtr env) {
     auto value = env->get(node->getIdentName());
 
     if (!value)
-        return std::make_unique<Error>(("identifier not found: " + node->getIdentName()));
+        return std::make_shared<Error>(("identifier not found: " + node->getIdentName()));
     
     return value;
 }
 
-std::vector<ObjectPtr> evalExprs(std::vector<std::unique_ptr<Expr>> args, EnvPtr env) {
+std::vector<ObjectPtr> evalExprs(std::vector<std::shared_ptr<Expr>> args, EnvPtr env) {
     std::vector<ObjectPtr> result;
 
     for (auto& arg : args) {
-        auto evaluated = eval(std::move(arg), env);
+        auto evaluated = eval(arg, env);
         result.push_back(evaluated);
 
         if (isError(evaluated))
@@ -205,8 +205,8 @@ std::vector<ObjectPtr> evalExprs(std::vector<std::unique_ptr<Expr>> args, EnvPtr
 
 ObjectPtr applyFunction(ObjectPtr func, std::vector<ObjectPtr> args, EnvPtr env) {
     if (func->getType() != OBJ_FUNC)
-        return std::make_unique<Error>(("not a function: " + func->typeString()));
-    
+        return std::make_shared<Error>(("not a function: " + func->typeString()));
+
     auto extended_env = extendFunctionEnv(func->getParams(), args, env);
     auto evaluated = evalBlock(func->getBody()->getStatements(), extended_env);
 

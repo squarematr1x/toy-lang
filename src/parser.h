@@ -31,26 +31,26 @@ public:
 
     const std::vector<std::string> errors() const { return m_errors; }
 
-    std::unique_ptr<Program> parseProgram();
-    std::unique_ptr<Statement> parseStatement();
-    std::unique_ptr<LetStatement> parseLetStatement();
-    std::unique_ptr<ReturnStatement> parseReturnStatement();
-    std::unique_ptr<ExprStatement> parseExprStatement();
-    std::unique_ptr<Expr> parseExpr(int precedence);
-    std::unique_ptr<Expr> parseIdentifier();
-    std::unique_ptr<Expr> parseIntegerLiteral();
-    std::unique_ptr<Expr> parseBoolean();
-    std::unique_ptr<Expr> parsePrefixExpr();
-    std::unique_ptr<Expr> parseInfixExpr(std::unique_ptr<Expr> left);
-    std::unique_ptr<Expr> parseGroupedExpr();
-    std::unique_ptr<Expr> parseIfExpr();
-    std::unique_ptr<Expr> parseFuncLiteral();
-    std::unique_ptr<Expr> parseCallExpr(std::unique_ptr<Expr> func);
+    std::shared_ptr<Program> parseProgram();
+    std::shared_ptr<Statement> parseStatement();
+    std::shared_ptr<LetStatement> parseLetStatement();
+    std::shared_ptr<ReturnStatement> parseReturnStatement();
+    std::shared_ptr<ExprStatement> parseExprStatement();
+    std::shared_ptr<Expr> parseExpr(int precedence);
+    std::shared_ptr<Expr> parseIdentifier();
+    std::shared_ptr<Expr> parseIntegerLiteral();
+    std::shared_ptr<Expr> parseBoolean();
+    std::shared_ptr<Expr> parsePrefixExpr();
+    std::shared_ptr<Expr> parseInfixExpr(std::shared_ptr<Expr> left);
+    std::shared_ptr<Expr> parseGroupedExpr();
+    std::shared_ptr<Expr> parseIfExpr();
+    std::shared_ptr<Expr> parseFuncLiteral();
+    std::shared_ptr<Expr> parseCallExpr(std::shared_ptr<Expr> func);
 
-    std::unique_ptr<BlockStatement> parseBlockStatement();
+    std::shared_ptr<BlockStatement> parseBlockStatement();
 
     std::vector<Identifier> parseFuncParameters();
-    std::vector<std::unique_ptr<Expr>> parseCallArgs();
+    std::vector<std::shared_ptr<Expr>> parseCallArgs();
 
     bool curTokenIs(token_type tok_type);
     bool peekTokenIs(token_type tok_type);

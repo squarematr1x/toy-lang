@@ -21,6 +21,7 @@ void start() {
             break;
         
         Lexer lexer(line);
+
         Parser parser(lexer);
         auto program = parser.parseProgram();
 
@@ -30,7 +31,7 @@ void start() {
         }
 
         const std::string program_str = program->toString();
-        auto evaluated = evaluator::eval(std::move(program), env);
+        auto evaluated = evaluator::eval((program), env);
     
         if (evaluated)
             std::cout << evaluated->inspect() << '\n';

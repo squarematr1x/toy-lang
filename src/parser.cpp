@@ -23,14 +23,14 @@ void Parser::peekError(token_type tok_type) {
     m_errors.push_back(msg);
 }
 
-std::unique_ptr<Program> Parser::parseProgram() {
-    auto program = std::make_unique<Program>();
+std::shared_ptr<Program> Parser::parseProgram() {
+    auto program = std::make_shared<Program>();
 
     while (m_cur_tok.type != TOK_EOF) {
         auto statement = parseStatement();
 
         if (statement)
-            program->pushStatement(std::move(statement));
+            program->pushStatement(statement);
 
         nextToken();
     }
@@ -38,7 +38,7 @@ std::unique_ptr<Program> Parser::parseProgram() {
     return program;
 }
 
-std::unique_ptr<Statement> Parser::parseStatement() {
+std::shared_ptr<Statement> Parser::parseStatement() {
     switch (m_cur_tok.type)
     {
     case TOK_LET:
@@ -50,8 +50,8 @@ std::unique_ptr<Statement> Parser::parseStatement() {
     }
 }
 
-std::unique_ptr<LetStatement> Parser::parseLetStatement() {
-    auto statement = std::make_unique<LetStatement>(m_cur_tok);
+std::shared_ptr<LetStatement> Parser::parseLetStatement() {
+    auto statement = std::make_shared<LetStatement>(m_cur_tok);
 
     if (!expectPeek(TOK_IDENT))
         return nullptr;
@@ -72,8 +72,8 @@ std::unique_ptr<LetStatement> Parser::parseLetStatement() {
     return statement;
 }
 
-std::unique_ptr<ReturnStatement> Parser::parseReturnStatement() {
-    auto statement = std::make_unique<ReturnStatement>(m_cur_tok);
+std::shared_ptr<ReturnStatement> Parser::parseReturnStatement() {
+    auto statement = std::make_shared<ReturnStatement>(m_cur_tok);
 
     nextToken();
 
@@ -85,19 +85,19 @@ std::unique_ptr<ReturnStatement> Parser::parseReturnStatement() {
     return statement;
 }
 
-std::unique_ptr<ExprStatement> Parser::parseExprStatement() {
-    auto statement = std::make_unique<ExprStatement>(m_cur_tok);
+std::shared_ptr<ExprStatement> Parser::parseExprStatement() {
+    auto statement = std::make_shared<ExprStatement>(m_cur_tok);
     auto expr = parseExpr(LOWEST);
 
-    statement->setExpr(std::move(expr));
+    statement->setExpr((expr));
     if (peekTokenIs(TOK_SEMICOLON))
         nextToken();
 
     return statement;
 }
 
-std::unique_ptr<Expr> Parser::parseExpr(int precedence) {
-    std::unique_ptr<Expr> expr = nullptr;
+std::shared_ptr<Expr> Parser::parseExpr(int precedence) {
+    std::shared_ptr<Expr> expr = nullptr;
 
     switch (m_cur_tok.type)
     {
@@ -130,7 +130,7 @@ std::unique_ptr<Expr> Parser::parseExpr(int precedence) {
         return nullptr;
     }
 
-    auto left_expr = std::move(expr);
+    auto left_expr = (expr);
 
     while (!peekTokenIs(TOK_SEMICOLON) && precedence < peekPrecedence()) {
         if (!isInfix(m_peek_tok.type))
@@ -139,22 +139,22 @@ std::unique_ptr<Expr> Parser::parseExpr(int precedence) {
         nextToken();
 
         if (m_cur_tok.type == TOK_LPAREN)
-            left_expr = parseCallExpr(std::move(left_expr));
+            left_expr = parseCallExpr(left_expr);
         else
-            left_expr = parseInfixExpr(std::move(left_expr));
+            left_expr = parseInfixExpr(left_expr);
     }
 
     return left_expr;
 }
 
-std::unique_ptr<Expr> Parser::parseIdentifier() {
-    auto ident = std::make_unique<Identifier>(m_cur_tok, m_cur_tok.literal);
+std::shared_ptr<Expr> Parser::parseIdentifier() {
+    auto ident = std::make_shared<Identifier>(m_cur_tok, m_cur_tok.literal);
 
     return ident;
 }
 
-std::unique_ptr<Expr> Parser::parseIntegerLiteral() {
-    auto int_lit = std::make_unique<IntegerLiteral>(m_cur_tok);
+std::shared_ptr<Expr> Parser::parseIntegerLiteral() {
+    auto int_lit = std::make_shared<IntegerLiteral>(m_cur_tok);
 
     if (!isNumber(m_cur_tok)) {
         const std::string error = "could not parse " + m_cur_tok.literal + " as integer";
@@ -167,35 +167,35 @@ std::unique_ptr<Expr> Parser::parseIntegerLiteral() {
     return int_lit;
 }
 
-std::unique_ptr<Expr> Parser::parseBoolean() {
-    return std::make_unique<BoolExpr>(m_cur_tok, curTokenIs(TOK_TRUE));
+std::shared_ptr<Expr> Parser::parseBoolean() {
+    return std::make_shared<BoolExpr>(m_cur_tok, curTokenIs(TOK_TRUE));
 }
 
-std::unique_ptr<Expr> Parser::parsePrefixExpr() {
-    auto expr = std::make_unique<PrefixExpr>(m_cur_tok, m_cur_tok.literal);
+std::shared_ptr<Expr> Parser::parsePrefixExpr() {
+    auto expr = std::make_shared<PrefixExpr>(m_cur_tok, m_cur_tok.literal);
 
     nextToken();
 
     auto right_expr = parseExpr(PREFIX);
-    expr->setRight(std::move(right_expr));
+    expr->setRight(right_expr);
 
     return expr;
 }
 
-std::unique_ptr<Expr> Parser::parseInfixExpr(std::unique_ptr<Expr> left) {
-    auto infix_expr = std::make_unique<InfixExpr>(m_cur_tok, std::move(left), m_cur_tok.literal);
+std::shared_ptr<Expr> Parser::parseInfixExpr(std::shared_ptr<Expr> left) {
+    auto infix_expr = std::make_shared<InfixExpr>(m_cur_tok, (left), m_cur_tok.literal);
 
     const int precedence = curPrecedence();
 
     nextToken();
 
     auto right = parseExpr(precedence);
-    infix_expr->setRight(std::move(right));
+    infix_expr->setRight(right);
     
     return infix_expr;
 }
 
-std::unique_ptr<Expr> Parser::parseGroupedExpr() {
+std::shared_ptr<Expr> Parser::parseGroupedExpr() {
     nextToken();
 
     auto expr = parseExpr(LOWEST);
@@ -206,8 +206,8 @@ std::unique_ptr<Expr> Parser::parseGroupedExpr() {
     return expr;
 }
 
-std::unique_ptr<Expr> Parser::parseIfExpr() {
-    auto expr = std::make_unique<IfExpr>(m_cur_tok);
+std::shared_ptr<Expr> Parser::parseIfExpr() {
+    auto expr = std::make_shared<IfExpr>(m_cur_tok);
 
     if (!expectPeek(TOK_LPAREN))
         return nullptr;
@@ -235,8 +235,8 @@ std::unique_ptr<Expr> Parser::parseIfExpr() {
     return expr;
 }
 
-std::unique_ptr<Expr> Parser::parseFuncLiteral() {
-    auto func_literal = std::make_unique<FuncLiteral>(m_cur_tok);
+std::shared_ptr<Expr> Parser::parseFuncLiteral() {
+    auto func_literal = std::make_shared<FuncLiteral>(m_cur_tok);
 
     if (!expectPeek(TOK_LPAREN))
         return nullptr;
@@ -251,15 +251,15 @@ std::unique_ptr<Expr> Parser::parseFuncLiteral() {
     return func_literal;
 }
 
-std::unique_ptr<Expr> Parser::parseCallExpr(std::unique_ptr<Expr> func) {
-    auto call_expr = std::make_unique<CallExpr>(m_cur_tok, std::move(func));
+std::shared_ptr<Expr> Parser::parseCallExpr(std::shared_ptr<Expr> func) {
+    auto call_expr = std::make_shared<CallExpr>(m_cur_tok, (func));
     call_expr->setArgs(parseCallArgs());
 
     return call_expr;
 }
 
-std::unique_ptr<BlockStatement> Parser::parseBlockStatement() {
-    auto block = std::make_unique<BlockStatement>(m_cur_tok);
+std::shared_ptr<BlockStatement> Parser::parseBlockStatement() {
+    auto block = std::make_shared<BlockStatement>(m_cur_tok);
 
     nextToken();
 
@@ -267,7 +267,7 @@ std::unique_ptr<BlockStatement> Parser::parseBlockStatement() {
         auto statement = parseStatement();
 
         if (statement)
-            block->pushStatement(std::move(statement));
+            block->pushStatement(statement);
         
         nextToken();
     }
@@ -300,8 +300,8 @@ std::vector<Identifier> Parser::parseFuncParameters() {
     return params;
 }
 
-std::vector<std::unique_ptr<Expr>> Parser::parseCallArgs() {
-    std::vector<std::unique_ptr<Expr>> args;
+std::vector<std::shared_ptr<Expr>> Parser::parseCallArgs() {
+    std::vector<std::shared_ptr<Expr>> args;
 
     if (peekTokenIs(TOK_RPAREN)) {
         nextToken();

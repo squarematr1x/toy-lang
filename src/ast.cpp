@@ -13,8 +13,8 @@ const std::string Program::tokenLiteral() const {
     return "";
 }
 
-void Program::pushStatement(std::unique_ptr<Statement> statement) {
-    m_statements.push_back(std::move(statement));
+void Program::pushStatement(std::shared_ptr<Statement> statement) {
+    m_statements.push_back(statement);
 }
 
 std::string Program::toString() const  {
@@ -25,14 +25,14 @@ std::string Program::toString() const  {
     return statement_str;
 }
 
-std::unique_ptr<Statement> Program::getStatementAt(unsigned int index) {
+std::shared_ptr<Statement> Program::getStatementAt(unsigned int index) {
     if (m_statements.size() == 0)
         return nullptr;
 
     if (index >= static_cast<unsigned int>(m_statements.size()))
         return nullptr;
 
-    return std::move(m_statements[index]);
+    return (m_statements[index]);
 }
 
 Identifier::Identifier(const Token& tok, const std::string& value) 
@@ -56,8 +56,8 @@ std::string PrefixExpr::toString() const {
     return prefix_str;
 }
 
-InfixExpr::InfixExpr(const Token& tok, std::unique_ptr<Expr> left, const std::string& oprtr)
-    : m_tok(tok), m_left(std::move(left)), m_oprtr(oprtr) {
+InfixExpr::InfixExpr(const Token& tok, std::shared_ptr<Expr> left, const std::string& oprtr)
+    : m_tok(tok), m_left((left)), m_oprtr(oprtr) {
 }
 
 std::string InfixExpr::toString() const {
@@ -101,8 +101,8 @@ std::string FuncLiteral::toString() const {
     return func_literal_str;
 }
 
-CallExpr::CallExpr(const Token& tok, std::unique_ptr<Expr> func)
-    : m_tok(tok), m_func(std::move(func)) {
+CallExpr::CallExpr(const Token& tok, std::shared_ptr<Expr> func)
+    : m_tok(tok), m_func(func) {
 }
 
 std::string CallExpr::toString() const {
@@ -124,14 +124,14 @@ std::string CallExpr::toString() const {
     return call_str;
 }
 
-std::unique_ptr<Expr> CallExpr::getArgAt(unsigned int index) {
+std::shared_ptr<Expr> CallExpr::getArgAt(unsigned int index) {
     if (m_args.size() == 0)
         return nullptr;
 
     if (index >= static_cast<unsigned int>(m_args.size()))
         return nullptr;
 
-    return std::move(m_args[index]);
+    return (m_args[index]);
 }
 
 IntegerLiteral::IntegerLiteral(const Token& tok)
@@ -193,8 +193,8 @@ BlockStatement::BlockStatement(const Token& tok)
     : m_tok(tok) {
 }
 
-void BlockStatement::pushStatement(std::unique_ptr<Statement> statement) {
-    m_statements.push_back(std::move(statement));
+void BlockStatement::pushStatement(std::shared_ptr<Statement> statement) {
+    m_statements.push_back(statement);
 }
 
 std::string BlockStatement::toString() const {
@@ -205,12 +205,12 @@ std::string BlockStatement::toString() const {
     return out;
 }
 
-std::unique_ptr<Statement> BlockStatement::getStatementAt(unsigned int index) {
+std::shared_ptr<Statement> BlockStatement::getStatementAt(unsigned int index) {
     if (m_statements.size() == 0)
         return nullptr;
 
     if (index >= static_cast<unsigned int>(m_statements.size()))
         return nullptr;
 
-    return std::move(m_statements[index]);
+    return (m_statements[index]);
 }
