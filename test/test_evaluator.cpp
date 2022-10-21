@@ -250,3 +250,37 @@ TEST(EvaluatorTest, TestStringConcatenation) {
     EXPECT_EQ(obj->getType(), OBJ_STR);
     EXPECT_EQ(obj->getStrVal(), "How are you?");
 }   
+
+TEST(EvaluatorTest, TestBuiltinFunctions) {
+    const std::vector<EvalTest<int>> tests = {
+        {"len(\"\")", 0},
+        {"len(\"test\")", 4},
+        {"len(\"Hello world!\")", 12}
+    };
+
+    for (const auto& test : tests) {
+        EnvPtr env = std::make_shared<Env>();
+        Lexer lexer(test.input);
+        Parser parser(lexer);
+        auto obj = evaluator::eval(parser.parseProgram(), env);
+        EXPECT_EQ(obj->getIntVal(), test.expected);
+        EXPECT_EQ(obj->getType(), OBJ_INT);
+    }
+}
+
+TEST(EvaluatorTest, TestBuiltinFunctionErrors) {
+    const std::vector<EvalTest<std::string>> tests = {
+        {"len(4)", "Error: argument 'len' not supported, got=INTEGER"},
+        {"len(\"first\", \"second\")", "Error: wrong number of arguments. got=2, want=1"},
+        {"len()", "Error: wrong number of arguments. got=0, want=1"}
+    };
+
+    for (const auto& test : tests) {
+        EnvPtr env = std::make_shared<Env>();
+        Lexer lexer(test.input);
+        Parser parser(lexer);
+        auto obj = evaluator::eval(parser.parseProgram(), env);
+        EXPECT_EQ(obj->inspect(), test.expected);
+        EXPECT_EQ(obj->getType(), OBJ_ERROR);
+    }
+}
