@@ -1,4 +1,5 @@
 #include "evaluator.h"
+#include "builtin.h"
 
 namespace evaluator {
 
@@ -197,10 +198,13 @@ ObjectPtr evalIfExpr(const ASTNodePtr& node, EnvPtr env) {
 ObjectPtr evalIdentifier(const ASTNodePtr& node, EnvPtr env) {
     auto value = env->get(node->getIdentName());
 
-    if (!value)
-        return std::make_shared<Error>(("identifier not found: " + node->getIdentName()));
+    if (value)
+        return value;
     
-    return value;
+    if (isBuiltIn(node->getIdentName()))
+        return std::make_shared<Builtin>(node->getIdentName());
+
+    return std::make_shared<Error>(("identifier not found: " + node->getIdentName()));
 }
 
 std::vector<ObjectPtr> evalExprs(std::vector<std::shared_ptr<Expr>> args, EnvPtr env) {
@@ -218,15 +222,21 @@ std::vector<ObjectPtr> evalExprs(std::vector<std::shared_ptr<Expr>> args, EnvPtr
 }
 
 ObjectPtr applyFunction(ObjectPtr func, std::vector<ObjectPtr> args, EnvPtr env) {
-    if (func->getType() != OBJ_FUNC)
+    switch (func->getType())
+    {
+    case OBJ_FUNC: {
+        auto extended_env = extendFunctionEnv(func->getParams(), args, env);
+        auto evaluated = evalBlock(func->getBody()->getStatements(), extended_env);
+
+        return unwrapReturnValue(evaluated);
+    }
+    case OBJ_BUILTIN: {
+        return getBuiltin(func->getStrVal(), args);
+    }
+    default:
         return std::make_shared<Error>(("not a function: " + func->typeString()));
-
-    auto extended_env = extendFunctionEnv(func->getParams(), args, env);
-    auto evaluated = evalBlock(func->getBody()->getStatements(), extended_env);
-
-    return unwrapReturnValue(evaluated);
+    }
 }
-
 
 EnvPtr extendFunctionEnv(std::vector<Identifier> params, std::vector<ObjectPtr> args, EnvPtr env) {
     unsigned int i = 0;

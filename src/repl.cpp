@@ -22,6 +22,13 @@ void start() {
         
         Lexer lexer(line);
 
+        while (true) {
+            Token tok = lexer.nextToken();
+            if (tok.type == TOK_EOF) 
+                break;
+            std::cout << tok.type << " : " << tok.literal << '\n';
+        }
+
         Parser parser(lexer);
         auto program = parser.parseProgram();
 

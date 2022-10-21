@@ -10,6 +10,7 @@ enum object_type {
     OBJ_BOOL,
     OBJ_RETURN,
     OBJ_FUNC,
+    OBJ_BUILTIN,
     OBJ_NIL,
     OBJ_ERROR
 };
@@ -110,6 +111,17 @@ struct Function: public Object {
     const std::vector<Identifier> getParams() const override { return params; }
 
     int getType() const override { return OBJ_FUNC; }
+};
+
+struct Builtin: public Object {
+    std::string builtin_name;
+
+    Builtin(const std::string builtin_name_in) : builtin_name(builtin_name_in) {}
+
+    const std::string inspect() const override { return "builtin function"; }
+    std::string getStrVal() const override { return builtin_name; }
+
+    int getType() const override { return OBJ_BUILTIN; }
 };
 
 struct NIL: public Object {
