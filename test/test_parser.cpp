@@ -111,6 +111,22 @@ TEST(ParserTest, TestIntegerLiteralExpr) {
     EXPECT_EQ(integer->tokenLiteral(), "8");
 }
 
+TEST(ParserTest, TestStringLiteralExpr) {
+    const std::string input = "\"Hello world\"";
+    Lexer lexer(input);
+    Parser parser(lexer);
+
+    const auto program = parser.parseProgram();
+    checkParseErrors(parser);
+    const unsigned int n_statements = program->nStatements();
+
+    EXPECT_EQ(n_statements, 1);
+
+    const auto str = program->getStatementAt(0);
+
+    EXPECT_EQ(str->tokenLiteral(), "Hello world");
+}
+
 TEST(ParserTest, TestParsingPrefixExpr) {
     struct PrefixTest {
         std::string input;

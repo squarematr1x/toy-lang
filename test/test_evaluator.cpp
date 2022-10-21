@@ -39,6 +39,18 @@ TEST(EvaluatorTest, TestEvalIntegerExpr) {
     }
 }
 
+TEST(EvaluatorTest, TestEvalStringLiteral) {
+    const std::string input = "\"Some string blaa\"";
+    EnvPtr env = std::make_shared<Env>();
+    Lexer lexer(input);
+    Parser parser(lexer);
+
+    auto obj = evaluator::eval(parser.parseProgram(), env);
+
+    EXPECT_EQ(obj->getStrVal(), "Some string blaa");
+    EXPECT_EQ(obj->getType(), OBJ_STR);
+}
+
 TEST(EvaluatorTest, TestEvalBoolExpr) {
     const std::vector<EvalTest<bool>> tests = {
         {"true", true},
@@ -157,7 +169,8 @@ TEST(EvaluatorTest, TestErrorHandling) {
         {"5; true + false; 5", "Error: unknown operator: BOOLEAN+BOOLEAN"},
         {"if (10 > 1) { true + false; }","Error: unknown operator: BOOLEAN+BOOLEAN"},
         {"if (10 > 1) { if (10 > 1) { return true + false; } return 1; }", "Error: unknown operator: BOOLEAN+BOOLEAN"},
-        {"some_var", "Error: identifier not found: some_var"}
+        {"some_var", "Error: identifier not found: some_var"},
+        {"\"first str\" - \"second str\"", "Error: unknown operator: STRING-STRING"}
     };
 
     for (const auto& test : tests) {
@@ -214,7 +227,7 @@ TEST(EvaluatorTest, TestEvalFunctionApp) {
         {"func(x) { x; }(8);", 8},
         {"let newAdder = func(x) { func(y) { x + y }; }; let addTwo = newAdder(2); addTwo(2);", 4},
         {"let a = func(x) { x*x; }; let b = func(x) { if (x > 10) { 1; } else {  0; } }; b(a(4));", 1},
-        {"let a = func(x) { x*x; }; let b = func(x) { if (x > 10) { 1; } else {  0; } }; b(a(3));", 0}
+        {"let a = func(x) { x*x; }; let b = func(x) { if (x > 10) { return 1; } else {  return 0; } }; b(a(3));", 0}
     };
 
     for (const auto& test : tests) {
@@ -226,3 +239,14 @@ TEST(EvaluatorTest, TestEvalFunctionApp) {
         EXPECT_EQ(obj->getType(), OBJ_INT);
     }
 }
+
+TEST(EvaluatorTest, TestStringConcatenation) {
+    const std::string input = "\"How are\" + \" you?\"";
+    EnvPtr env;
+    Lexer lexer(input);
+    Parser parser(lexer);
+    auto obj = evaluator::eval(parser.parseProgram(), env);
+
+    EXPECT_EQ(obj->getType(), OBJ_STR);
+    EXPECT_EQ(obj->getStrVal(), "How are you?");
+}   
