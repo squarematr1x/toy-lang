@@ -48,15 +48,15 @@ std::string Lexer::readNumber() {
 }
 
 std::string Lexer::readString() {
-    std::string str;
+    std::string str = "";
 
     readChar();
     while (true) {
-        str += m_char;
-
-        readChar();
         if (m_char == '"' || m_char == 0)
             break;
+
+        str += m_char;
+        readChar();
     }
 
     return str;
