@@ -43,6 +43,10 @@ std::string Identifier::toString() const {
     return m_value;
 }
 
+StringLiteral::StringLiteral(const Token& tok, const std::string& value)
+    : m_tok(tok), m_value(value) {
+}
+
 PrefixExpr::PrefixExpr(const Token& tok, const std::string& oprtr)
     : m_tok(tok), m_oprtr(oprtr) {
 }

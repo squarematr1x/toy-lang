@@ -39,6 +39,7 @@ public:
     std::shared_ptr<Expr> parseExpr(int precedence);
     std::shared_ptr<Expr> parseIdentifier();
     std::shared_ptr<Expr> parseIntegerLiteral();
+    std::shared_ptr<Expr> parseStringLiteral();
     std::shared_ptr<Expr> parseBoolean();
     std::shared_ptr<Expr> parsePrefixExpr();
     std::shared_ptr<Expr> parseInfixExpr(std::shared_ptr<Expr> left);

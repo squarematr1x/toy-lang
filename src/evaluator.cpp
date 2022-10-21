@@ -13,6 +13,8 @@ ObjectPtr eval(const ASTNodePtr& node, EnvPtr env) {
         return evalIdentifier(node, env);
     case NODE_INT:   
         return std::make_shared<Integer>(node->getIntValue());
+    case NODE_STR:
+        return std::make_shared<String>(node->tokenLiteral());
     case NODE_BOOL:
         return std::make_shared<Bool>(node->getBoolValue());
     case NODE_PREFIX: {
@@ -112,6 +114,8 @@ ObjectPtr evalPrefixExpr(const std::string& oprtr, const ObjectPtr& right) {
 ObjectPtr evalInfixExpr(const std::string& oprtr, const ObjectPtr& left, const ObjectPtr& right) {
     if (left->getType() == OBJ_INT && right->getType() == OBJ_INT)
         return evalIntInfixExpr(oprtr, left, right);
+    if (left->getType() == OBJ_STR && right->getType() == OBJ_STR)
+        return evalStringInfixExpr(oprtr, left, right);
     if (oprtr == "==")
         return std::make_shared<Bool>(left->getBoolVal() == right->getBoolVal());
     if (oprtr == "!=")
@@ -163,6 +167,16 @@ ObjectPtr evalIntInfixExpr(const std::string& oprtr, const ObjectPtr& left, cons
         return std::make_shared<Bool>(left_value != right_value);
 
     return std::make_shared<Error>(("unknown operator: " + left->typeString() + oprtr + right->typeString()));
+}
+
+ObjectPtr evalStringInfixExpr(const std::string& oprtr, const ObjectPtr& left, const ObjectPtr& right) {
+    if (oprtr != "+")
+        return std::make_shared<Error>(("unknown operator: " + left->typeString() + oprtr + right->typeString()));
+    
+    auto left_str = left->getStrVal();
+    auto right_str = right->getStrVal();
+
+    return std::make_shared<String>(left_str + right_str);
 }
 
 ObjectPtr evalIfExpr(const ASTNodePtr& node, EnvPtr env) {

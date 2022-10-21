@@ -15,6 +15,7 @@ ObjectPtr evalInfixExpr(const std::string& oprtr, const ObjectPtr& left, const O
 ObjectPtr evalBangOperator(const ObjectPtr& right);
 ObjectPtr evalMinusOperator(const ObjectPtr& right);
 ObjectPtr evalIntInfixExpr(const std::string& oprtr, const ObjectPtr& left, const ObjectPtr& right);
+ObjectPtr evalStringInfixExpr(const std::string& oprtr, const ObjectPtr& left, const ObjectPtr& right);
 ObjectPtr evalIfExpr(const ASTNodePtr& node, EnvPtr env);
 ObjectPtr evalIdentifier(const ASTNodePtr& node, EnvPtr env);
 

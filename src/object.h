@@ -6,6 +6,7 @@
 
 enum object_type {
     OBJ_INT,
+    OBJ_STR,
     OBJ_BOOL,
     OBJ_RETURN,
     OBJ_FUNC,
@@ -24,9 +25,10 @@ struct Object {
     virtual const std::string typeString() const { return ""; }
 
     virtual int getType() const { return -1; }
-    virtual int getIntVal() const { return 0; }
 
+    virtual int getIntVal() const { return 0; }
     virtual bool getBoolVal() const { return true; }
+    virtual std::string getStrVal() const { return ""; }
 
     virtual std::shared_ptr<Object> getObjValue() { return nullptr; }
     virtual std::shared_ptr<BlockStatement> getBody() { return nullptr; }
@@ -63,6 +65,18 @@ struct Bool: public Object {
     int getIntVal() const override { return value; }
 
     bool getBoolVal() const override { return value; }
+};
+
+struct String: public Object {
+    std::string value;
+
+    String(const std::string& value_in) : value(value_in) {}
+
+    const std::string inspect() const override { return value; }
+    const std::string typeString() const override { return "STRING"; }
+    std::string getStrVal() const override { return value; }
+
+    int getType() const override { return OBJ_STR; }
 };
 
 struct Return: public Object {

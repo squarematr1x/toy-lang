@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+#define __DEBUG__
+
 Lexer::Lexer(std::string input)
     : m_input(input) {
     readChar();
@@ -43,6 +45,21 @@ std::string Lexer::readNumber() {
     }
 
     return str_num;
+}
+
+std::string Lexer::readString() {
+    std::string str;
+
+    readChar();
+    while (true) {
+        str += m_char;
+
+        readChar();
+        if (m_char == '"' || m_char == 0)
+            break;
+    }
+
+    return str;
 }
 
 char Lexer::peekChar() {
@@ -106,6 +123,11 @@ Token Lexer::nextToken() {
             tok = {TOK_LBRACE, literal}; break;
         case '}':
             tok = {TOK_RBRACE, literal}; break;
+        case '"': {
+            std::string str = readString();
+            tok = {TOK_STR, str};
+            break;
+        }
         case 0:
             tok = {TOK_EOF, ""}; break;
         default:
@@ -117,6 +139,9 @@ Token Lexer::nextToken() {
                 tok = {TOK_INT, readNumber()};
                 return tok;
             } else {
+#ifdef __DEBUG__
+                std::cout << "Illegal tok: " << literal << " found\n";
+#endif
                 tok = {TOK_ILLEGAL, literal};
             }
             break;

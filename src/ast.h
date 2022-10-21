@@ -17,6 +17,7 @@ enum node_type {
     NODE_CALL_EXPR,
     NODE_IF_EXPR,
     NODE_INT,
+    NODE_STR,
     NODE_IDENT,
     NODE_BOOL,
     NODE_PREFIX,
@@ -119,6 +120,19 @@ public:
 
     int nodeType() const override { return NODE_INT; }
     int getIntValue() const override { return m_value; }
+};
+
+class StringLiteral: public Expr {
+    Token m_tok;
+    std::string m_value;
+
+public:
+    StringLiteral(const Token& tok, const std::string& value);
+
+    std::string toString() const override { return m_tok.literal; }
+    const std::string tokenLiteral() const override { return m_tok.literal; }
+
+     int nodeType() const override { return NODE_STR; }
 };
 
 class BoolExpr: public Expr {
