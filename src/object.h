@@ -6,6 +6,7 @@
 
 enum object_type {
     OBJ_INT,
+    OBJ_FLOAT,
     OBJ_STR,
     OBJ_BOOL,
     OBJ_RETURN,
@@ -29,6 +30,7 @@ struct Object {
 
     virtual int getIntVal() const { return 0; }
     virtual bool getBoolVal() const { return true; }
+    virtual double getFloatVal() const { return -1; }
     virtual std::string getStrVal() const { return ""; }
 
     virtual std::shared_ptr<Object> getObjValue() { return nullptr; }
@@ -52,6 +54,22 @@ struct Integer: public Object {
 
     int getIntVal() const override { return value; }
     bool getBoolVal() const override { return value; }
+    double getFloatVal() const override { return static_cast<double>(value); }
+};
+
+struct Float: public Object {
+    double value;
+
+    Float(double value_in) : value(value_in) {}
+
+    const std::string inspect() const override { return std::to_string(value); }
+    const std::string typeString() const override { return "FLOAT"; }
+
+    int getType() const override { return OBJ_FLOAT; }
+
+    int getIntVal() const override { return static_cast<int>(value); }
+    bool getBoolVal() const override { return static_cast<bool>(value); }
+    double getFloatVal() const override { return value; }
 };
 
 struct Bool: public Object {

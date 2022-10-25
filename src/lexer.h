@@ -23,4 +23,5 @@ public:
     bool isLetter(char c);
 
     Token nextToken();
+    Token getNumberToken(const std::string& str);
 };

@@ -17,6 +17,7 @@ enum node_type {
     NODE_CALL_EXPR,
     NODE_IF_EXPR,
     NODE_INT,
+    NODE_FLOAT,
     NODE_STR,
     NODE_IDENT,
     NODE_BOOL,
@@ -52,6 +53,8 @@ public:
 
     virtual int nodeType() const { return NODE_BASIC; }
     virtual int getIntValue() const { return -1; }
+
+    virtual double getFloatValue() const { return -1; }
 
     virtual bool getBoolValue() const { return false; }
 
@@ -120,6 +123,22 @@ public:
 
     int nodeType() const override { return NODE_INT; }
     int getIntValue() const override { return m_value; }
+};
+
+class FloatLiteral: public Expr {
+    Token m_tok;
+    double m_value;
+
+public:
+    FloatLiteral(const Token& tok);
+
+    void setValue(double value) { m_value = value; }
+
+    std::string toString() const override { return m_tok.literal; }
+    const std::string tokenLiteral() const override { return m_tok.literal; }
+
+    int nodeType() const override { return NODE_FLOAT; }
+    double getFloatValue() const override { return m_value; }
 };
 
 class StringLiteral: public Expr {

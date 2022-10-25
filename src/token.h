@@ -14,6 +14,7 @@ enum token_type {
     // Identifiers + literals
     TOK_IDENT, // foo, bar, x, ...
     TOK_INT,
+    TOK_FLOAT,
     TOK_STR,
 
     // Operators

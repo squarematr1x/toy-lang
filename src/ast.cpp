@@ -142,6 +142,10 @@ IntegerLiteral::IntegerLiteral(const Token& tok)
     : m_tok(tok) {
 }
 
+FloatLiteral::FloatLiteral(const Token& tok)
+    : m_tok(tok) {
+}
+
 BoolExpr::BoolExpr(const Token& tok, bool value)
     : m_tok(tok), m_value(value) {
 }

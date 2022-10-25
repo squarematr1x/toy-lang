@@ -14,6 +14,8 @@ ObjectPtr eval(const ASTNodePtr& node, EnvPtr env) {
         return evalIdentifier(node, env);
     case NODE_INT:   
         return std::make_shared<Integer>(node->getIntValue());
+    case NODE_FLOAT:
+        return std::make_shared<Float>(node->getFloatValue());
     case NODE_STR:
         return std::make_shared<String>(node->tokenLiteral());
     case NODE_BOOL:
@@ -115,6 +117,12 @@ ObjectPtr evalPrefixExpr(const std::string& oprtr, const ObjectPtr& right) {
 ObjectPtr evalInfixExpr(const std::string& oprtr, const ObjectPtr& left, const ObjectPtr& right) {
     if (left->getType() == OBJ_INT && right->getType() == OBJ_INT)
         return evalIntInfixExpr(oprtr, left, right);
+    if (left->getType() == OBJ_INT && right->getType() == OBJ_FLOAT)
+        return evalFloatInfixExpr(oprtr, left, right);
+    if (left->getType() == OBJ_FLOAT && right->getType() == OBJ_INT)
+        return evalFloatInfixExpr(oprtr, left, right);
+    if (left->getType() == OBJ_FLOAT && right->getType() == OBJ_FLOAT)
+        return evalFloatInfixExpr(oprtr, left, right);
     if (left->getType() == OBJ_STR && right->getType() == OBJ_STR)
         return evalStringInfixExpr(oprtr, left, right);
     if (oprtr == "==")
@@ -138,12 +146,15 @@ ObjectPtr evalBangOperator(const ObjectPtr& right) {
 }
 
 ObjectPtr evalMinusOperator(const ObjectPtr& right) {
-    if (right->getType() != OBJ_INT)
-        return std::make_shared<Error>(("unknown operator: -" + right->typeString()));
-    
-    int value = right->getIntVal();
-
-    return std::make_shared<Integer>(-value);
+    switch (right->getType())
+    {
+    case OBJ_INT:
+        return std::make_shared<Integer>(-right->getIntVal());
+    case OBJ_FLOAT:
+        return std::make_shared<Float>(-right->getFloatVal());
+    default:
+        return std::make_shared<Error>(("unknown operator: -" + right->typeString())); 
+    }
 }
 
 ObjectPtr evalIntInfixExpr(const std::string& oprtr, const ObjectPtr& left, const ObjectPtr& right) {
@@ -158,6 +169,30 @@ ObjectPtr evalIntInfixExpr(const std::string& oprtr, const ObjectPtr& left, cons
         return std::make_shared<Integer>(left_value * right_value);
     if (oprtr == "/")
         return std::make_shared<Integer>(left_value / right_value);
+    if (oprtr == "<")
+        return std::make_shared<Bool>(left_value < right_value);
+    if (oprtr == ">")
+        return std::make_shared<Bool>(left_value > right_value);
+    if (oprtr == "==")
+        return std::make_shared<Bool>(left_value == right_value);
+    if (oprtr == "!=")
+        return std::make_shared<Bool>(left_value != right_value);
+
+    return std::make_shared<Error>(("unknown operator: " + left->typeString() + oprtr + right->typeString()));
+}
+
+ObjectPtr evalFloatInfixExpr(const std::string& oprtr, const ObjectPtr& left, const ObjectPtr& right) {
+    double left_value = left->getFloatVal();
+    double right_value = right->getFloatVal();
+
+    if (oprtr == "+")
+        return std::make_shared<Float>(left_value + right_value);
+    if (oprtr == "-")
+        return std::make_shared<Float>(left_value - right_value);
+    if (oprtr == "*")
+        return std::make_shared<Float>(left_value * right_value);
+    if (oprtr == "/")
+        return std::make_shared<Float>(left_value / right_value);
     if (oprtr == "<")
         return std::make_shared<Bool>(left_value < right_value);
     if (oprtr == ">")

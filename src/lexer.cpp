@@ -35,11 +35,10 @@ std::string Lexer::readIdentifier() {
     return ident;
 }
 
-// TODO: Add support for floats, doubles, etc.
 std::string Lexer::readNumber() {
     std::string str_num;
 
-    while (isdigit(m_char)) {
+    while (isdigit(m_char) || m_char == '.') {
         str_num += m_char;
         readChar();
     }
@@ -136,8 +135,8 @@ Token Lexer::nextToken() {
                 tok.type = lookupIdent(tok.literal);
                 return tok;
             } else if (isdigit(m_char)) {
-                tok = {TOK_INT, readNumber()};
-                return tok;
+                const std::string num_str = readNumber();
+                return getNumberToken(num_str);
             } else {
 #ifdef __DEBUG__
                 std::cout << "Illegal tok: " << literal << " found\n";
@@ -149,4 +148,28 @@ Token Lexer::nextToken() {
     readChar();
 
     return tok;
+}
+
+Token Lexer::getNumberToken(const std::string& str) {
+    const size_t str_len = str.length();
+    unsigned int n_dots = 0;
+
+    for (unsigned int i = 0; i < str_len; i++) {
+        if (str[i] == '.') {
+            if (i == 0)
+                return {TOK_ILLEGAL, str};
+            else if (i == str_len - 1)
+                return {TOK_ILLEGAL, str};
+
+            n_dots++;
+
+            if (n_dots > 1)
+                return {TOK_ILLEGAL, str};
+        }
+    }
+
+    if (n_dots == 1)
+        return {TOK_FLOAT, str};
+
+    return {TOK_INT, str};
 }

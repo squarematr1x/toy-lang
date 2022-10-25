@@ -105,6 +105,8 @@ std::shared_ptr<Expr> Parser::parseExpr(int precedence) {
         expr = parseIdentifier(); break;
     case TOK_INT:
         expr = parseIntegerLiteral(); break;
+    case TOK_FLOAT:
+        expr = parseFloatLiteral(); break;
     case TOK_STR:
         expr = parseStringLiteral(); break;
     case TOK_TRUE:
@@ -167,6 +169,13 @@ std::shared_ptr<Expr> Parser::parseIntegerLiteral() {
     int_lit->setValue(stoi(m_cur_tok.literal));
 
     return int_lit;
+}
+
+std::shared_ptr<Expr> Parser::parseFloatLiteral() {
+    auto float_lit = std::make_shared<FloatLiteral>(m_cur_tok);
+    float_lit->setValue(stod(m_cur_tok.literal));
+
+    return float_lit;
 }
 
 std::shared_ptr<Expr> Parser::parseStringLiteral() {
