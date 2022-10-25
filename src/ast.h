@@ -82,7 +82,7 @@ public:
     const std::string tokenLiteral() const override;
     std::string toString() const override;
 
-    int nStatements() const { return static_cast<int>(m_statements.size()); } 
+    unsigned int nStatements() const { return static_cast<unsigned int>(m_statements.size()); } 
     int nodeType() const override { return NODE_PROGRAM; }
 
     std::shared_ptr<Statement> getStatementAt(unsigned int index);

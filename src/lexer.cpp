@@ -13,7 +13,7 @@ void Lexer::readChar() {
     if (m_read_pos >= static_cast<int>(m_input.length()))
         m_char = 0;
     else
-        m_char = m_input[m_read_pos];
+        m_char = m_input[static_cast<size_t>(m_read_pos)];
 
     m_pos = m_read_pos;
     m_read_pos++;
@@ -66,7 +66,7 @@ char Lexer::peekChar() {
     if (m_read_pos >= static_cast<int>(m_input.length()))
         return 0;
     else
-        return m_input[m_read_pos];
+        return m_input[static_cast<size_t>(m_read_pos)];
 }
 
 bool Lexer::isLetter(char c) {

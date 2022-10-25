@@ -320,7 +320,7 @@ TEST(ParserTest, TestFuncParameterParsing) {
 
         EXPECT_EQ(function->getParams().size(), test.expected_params.size());
 
-        const unsigned int n = test.expected_params.size();
+        const size_t n = test.expected_params.size();
         for (unsigned int i = 0; i <  n; i++)
             EXPECT_EQ(function->getParams()[i].tokenLiteral(), test.expected_params[i]);
     }
@@ -356,7 +356,7 @@ TEST(ParserTest, TestCallExprParsing) {
 
     EXPECT_EQ(call_expr->getFunc()->tokenLiteral(), "testFunc");
 
-    const unsigned int n = call_expr->getArgSize();
+    const size_t n = call_expr->getArgSize();
     EXPECT_EQ(n, 3);
 
     EXPECT_EQ(call_expr->getArgAt(0)->tokenLiteral(), "1");
@@ -387,7 +387,7 @@ TEST(ParserTest, TestCallExprParameterParsing) {
 
         EXPECT_EQ(call_expr->getArgSize(), test.expected_params.size());
 
-        const unsigned int n = test.expected_params.size();
+        const size_t n = test.expected_params.size();
         for (unsigned int i = 0; i <  n; i++)
             EXPECT_EQ(call_expr->getArgAt(i)->toString(), test.expected_params[i]);
     }

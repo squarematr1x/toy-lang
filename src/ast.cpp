@@ -115,7 +115,7 @@ std::string CallExpr::toString() const {
     call_str += m_func->toString();
     call_str += "(";
 
-    const unsigned int n = m_args.size();
+    const size_t n = m_args.size();
     for (unsigned int i = 0; i < n; i++) {
         call_str += m_args[i]->toString();
 

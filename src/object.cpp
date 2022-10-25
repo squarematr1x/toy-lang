@@ -9,7 +9,7 @@ const std::string Bool::inspect() const {
 
 const std::string Function::inspect() const {
     std::string func_str = "func(";
-    unsigned int n = params.size();
+    const size_t n = params.size();
     for (unsigned int i = 0; i < n; i++) {
         func_str += params[i].toString();
 
