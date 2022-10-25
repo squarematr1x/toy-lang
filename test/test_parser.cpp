@@ -78,7 +78,6 @@ TEST(ParserTest, TestToString) {
     EXPECT_EQ(program->toString(), expected_str);
 }
 
-// TODO: Add tests for Boolean and implement getValue<T>()
 TEST(ParserTest, TestIdentifierExpr) {
     const std::string input = "foobar";
     Lexer lexer(input);
@@ -109,6 +108,22 @@ TEST(ParserTest, TestIntegerLiteralExpr) {
     const auto integer = program->getStatementAt(0);
     
     EXPECT_EQ(integer->tokenLiteral(), "8");
+}
+
+TEST(ParserTest, TestFloatLiteralExpr) {
+    const std::string input = "41.328";
+    Lexer lexer(input);
+    Parser parser(lexer);
+
+    const auto program = parser.parseProgram();
+    checkParseErrors(parser);
+    const unsigned int n_statements = program->nStatements();
+
+    EXPECT_EQ(n_statements, 1);
+
+    const auto integer = program->getStatementAt(0);
+    
+    EXPECT_EQ(integer->tokenLiteral(), "41.328");
 }
 
 TEST(ParserTest, TestStringLiteralExpr) {
@@ -341,7 +356,7 @@ TEST(ParserTest, TestFuncEmptyParameterParsing) {
 }
 
 TEST(ParserTest, TestCallExprParsing) {
-    const std::string input = "testFunc(1, 2 * 3, 5 + 7);";
+    const std::string input = "testFunc(1.15, 2 * 3, 5 + 7);";
 
     Lexer lexer(input);
     Parser parser(lexer);
@@ -359,7 +374,7 @@ TEST(ParserTest, TestCallExprParsing) {
     const size_t n = call_expr->getArgSize();
     EXPECT_EQ(n, 3);
 
-    EXPECT_EQ(call_expr->getArgAt(0)->tokenLiteral(), "1");
+    EXPECT_EQ(call_expr->getArgAt(0)->tokenLiteral(), "1.15");
     EXPECT_EQ(call_expr->getArgAt(1)->toString(), "(2 * 3)");
     EXPECT_EQ(call_expr->getArgAt(2)->toString(), "(5 + 7)");
 }

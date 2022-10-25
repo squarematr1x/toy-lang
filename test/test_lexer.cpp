@@ -85,3 +85,26 @@ TEST(LexerTest, TestEmptyInputLexer) {
     EXPECT_EQ(tok.type, expected_tok.type);
     EXPECT_EQ(tok.literal, expected_tok.literal);
 }
+
+TEST(LexerTest, TestGetNumberToken) {
+    std::vector<std::pair<std::string, int>> tests = {
+        {"4.51", TOK_FLOAT},
+        {"1.1", TOK_FLOAT},
+        {"101551.0", TOK_FLOAT},
+        {"04124.430", TOK_FLOAT},
+        {"6236264", TOK_INT},
+        {"0", TOK_INT},
+        {"153", TOK_INT},
+        {"1636126.", TOK_ILLEGAL},
+        {".02124", TOK_ILLEGAL},
+        {"24.21.0", TOK_ILLEGAL},
+    };
+
+    Lexer lexer("");
+    
+    for (const auto& test : tests) { 
+        const Token tok = lexer.getNumberToken(test.first);
+        EXPECT_EQ(tok.literal, test.first);
+        EXPECT_EQ(tok.type, test.second);
+    }
+}

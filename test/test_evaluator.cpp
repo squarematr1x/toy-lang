@@ -39,6 +39,34 @@ TEST(EvaluatorTest, TestEvalIntegerExpr) {
     }
 }
 
+TEST(EvaluatorTest, TestEvalFloatExpr) {
+    const std::vector<EvalTest<double>> tests = {
+        {"5.0", 5.0},
+        {"17.11", 17.11},
+        {"-99.234", -99.234},
+        {"-4.167", -4.167},
+        {"5 + 5.25 + 3 + 5 - 10", 8.25},
+        {"2.0 * 2 * 2 * 2 * 2", 32.0},
+        {"-50 + 100 + -49.5", 0.5},
+        {"3.1 * 2 + 10", 16.2},
+        {"1.0 + 2.0 * 2.5", 6.0},
+        {"20 + 2 * -10.25", -0.50},
+        {"50.0 / 2.0 * 2 + 10.11", 60.11},
+        {"2 * (5.1 + 4.9)", 20.0},
+        {"3.0 * 3.0 * 3.0 + 10.44", 37.44},
+    };
+
+    for (const auto& test : tests) {
+        EnvPtr env = std::make_shared<Env>();
+        Lexer lexer(test.input);
+        Parser parser(lexer);
+        auto obj = evaluator::eval(parser.parseProgram(), env);
+
+        EXPECT_EQ(obj->getFloatVal(), test.expected);
+        EXPECT_EQ(obj->getType(), OBJ_FLOAT);
+    }
+}
+
 TEST(EvaluatorTest, TestEvalStringLiteral) {
     const std::string input = "\"Some string blaa\"";
     EnvPtr env = std::make_shared<Env>();
@@ -72,6 +100,11 @@ TEST(EvaluatorTest, TestEvalBoolExpr) {
         {"(5 < 2) == true", false},
         {"(11 > 55) == false", true},
         {"(5 > 2) == true", true},
+        {"4.52 == 4.52",  true},
+        {"4.1 == 2.13", false},
+        {"11.5 > 4", true},
+        {"0.55 < 12.0", true},
+        {"11.0 != 11.2", true}
     };
 
     for (const auto& test : tests) {
