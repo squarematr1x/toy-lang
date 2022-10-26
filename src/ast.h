@@ -19,6 +19,7 @@ enum node_type {
     NODE_INT,
     NODE_FLOAT,
     NODE_STR,
+    NODE_ARRAY,
     NODE_IDENT,
     NODE_BOOL,
     NODE_PREFIX,
@@ -50,6 +51,7 @@ public:
     virtual std::vector<Identifier> getParams() const { return {}; }
     virtual std::vector<std::shared_ptr<Statement>> getStatements() { return {}; }
     virtual std::vector<std::shared_ptr<Expr>> getArgs() { return {}; }
+    virtual std::vector<std::shared_ptr<Expr>> getElements() { return {}; }
 
     virtual int nodeType() const { return NODE_BASIC; }
     virtual int getIntValue() const { return -1; }
@@ -169,6 +171,23 @@ public:
     bool getBoolValue() const override { return m_value; }
 };
 
+class ArrayLiteral: public Expr {
+    Token m_tok;
+    std::vector<std::shared_ptr<Expr>> m_elements;
+
+public:
+    ArrayLiteral(const Token& tok);
+
+    void setElements(std::vector<std::shared_ptr<Expr>> elements) { m_elements = elements; }
+
+    std::string toString() const override;
+    const std::string tokenLiteral() const override { return m_tok.literal; }
+
+    std::vector<std::shared_ptr<Expr>> getElements() override { return m_elements; }
+
+    int nodeType() const override { return NODE_ARRAY; }
+};
+
 class PrefixExpr: public Expr {
     Token m_tok;
     std::string m_oprtr;
@@ -269,7 +288,7 @@ public:
 
     size_t getArgSize() const override { return m_args.size(); }
 
-    virtual std::vector<std::shared_ptr<Expr>> getArgs() override { return m_args; }
+    std::vector<std::shared_ptr<Expr>> getArgs() override { return m_args; }
 
     int nodeType() const override { return NODE_CALL_EXPR; }
 };

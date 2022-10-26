@@ -32,10 +32,13 @@ enum token_type {
     TOK_COMMA,
     TOK_SEMICOLON,
 
+    // Parenthesis
     TOK_LPAREN,
     TOK_RPAREN,
     TOK_LBRACE,
     TOK_RBRACE,
+    TOK_LBRACKET,
+    TOK_RBRACKET,
 
     // Keywords
     TOK_FUNC,

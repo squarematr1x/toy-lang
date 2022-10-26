@@ -48,11 +48,12 @@ public:
     std::shared_ptr<Expr> parseIfExpr();
     std::shared_ptr<Expr> parseFuncLiteral();
     std::shared_ptr<Expr> parseCallExpr(std::shared_ptr<Expr> func);
+    std::shared_ptr<Expr> parseArrayLiteral();
 
     std::shared_ptr<BlockStatement> parseBlockStatement();
 
     std::vector<Identifier> parseFuncParameters();
-    std::vector<std::shared_ptr<Expr>> parseCallArgs();
+    std::vector<std::shared_ptr<Expr>> parseExprList(token_type end_tok);
 
     bool curTokenIs(token_type tok_type);
     bool peekTokenIs(token_type tok_type);

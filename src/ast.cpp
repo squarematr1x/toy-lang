@@ -150,6 +150,25 @@ BoolExpr::BoolExpr(const Token& tok, bool value)
     : m_tok(tok), m_value(value) {
 }
 
+ArrayLiteral::ArrayLiteral(const Token& tok)
+    : m_tok(tok) {
+}
+
+std::string ArrayLiteral::toString() const {
+    std::string arr_str = "[";
+
+    const size_t n = m_elements.size();
+    for (unsigned int i = 0; i < n; i++) {
+        arr_str += m_elements[i]->toString();
+
+        if (i < n - 1)
+            arr_str += ", ";
+    }
+    arr_str += "]";
+
+    return arr_str;
+}
+
 LetStatement::LetStatement(const Token& tok)
     : m_tok(tok) {
 }

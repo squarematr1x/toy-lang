@@ -122,6 +122,10 @@ Token Lexer::nextToken() {
             tok = {TOK_LBRACE, literal}; break;
         case '}':
             tok = {TOK_RBRACE, literal}; break;
+        case '[':
+            tok = {TOK_LBRACKET, literal}; break;
+        case ']':
+            tok = {TOK_RBRACKET, literal}; break;
         case '"': {
             std::string str = readString();
             tok = {TOK_STR, str};

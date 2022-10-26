@@ -119,6 +119,8 @@ std::shared_ptr<Expr> Parser::parseExpr(int precedence) {
         expr = parsePrefixExpr(); break;
     case TOK_LPAREN:
         expr = parseGroupedExpr(); break;
+    case TOK_LBRACKET:
+        expr = parseArrayLiteral(); break;
     case TOK_IF:
         expr = parseIfExpr(); break;
     case TOK_FUNC:
@@ -268,9 +270,40 @@ std::shared_ptr<Expr> Parser::parseFuncLiteral() {
 
 std::shared_ptr<Expr> Parser::parseCallExpr(std::shared_ptr<Expr> func) {
     auto call_expr = std::make_shared<CallExpr>(m_cur_tok, (func));
-    call_expr->setArgs(parseCallArgs());
+    call_expr->setArgs(parseExprList(TOK_RPAREN));
 
     return call_expr;
+}
+
+std::shared_ptr<Expr> Parser::parseArrayLiteral() {
+    auto arr = std::make_shared<ArrayLiteral>(m_cur_tok);
+    arr->setElements(parseExprList(TOK_RBRACKET));
+
+    return arr;
+}
+
+std::vector<std::shared_ptr<Expr>> Parser::parseExprList(token_type end_tok) {
+    std::vector<std::shared_ptr<Expr>> list;
+
+    if (peekTokenIs(end_tok)) {
+        nextToken();
+        return list;
+    }
+
+    nextToken();
+    list.push_back(parseExpr(LOWEST));
+
+    while (peekTokenIs(TOK_COMMA)) {
+        nextToken();
+        nextToken();
+
+        list.push_back(parseExpr(LOWEST));
+    }
+
+    if (!expectPeek(end_tok))
+        return {};
+    
+    return list;
 }
 
 std::shared_ptr<BlockStatement> Parser::parseBlockStatement() {
@@ -313,30 +346,6 @@ std::vector<Identifier> Parser::parseFuncParameters() {
         return {};
     
     return params;
-}
-
-std::vector<std::shared_ptr<Expr>> Parser::parseCallArgs() {
-    std::vector<std::shared_ptr<Expr>> args;
-
-    if (peekTokenIs(TOK_RPAREN)) {
-        nextToken();
-        return args;
-    }
-
-    nextToken();
-    args.push_back(parseExpr(LOWEST));
-
-    while (peekTokenIs(TOK_COMMA)) {
-        nextToken();
-        nextToken();
-
-        args.push_back(parseExpr(LOWEST));
-    }
-
-    if (!expectPeek(TOK_RPAREN))
-        return {};
-    
-    return args;
 }
 
 bool Parser::curTokenIs(token_type tok_type) {
