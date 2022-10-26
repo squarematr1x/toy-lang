@@ -407,3 +407,32 @@ TEST(ParserTest, TestCallExprParameterParsing) {
             EXPECT_EQ(call_expr->getArgAt(i)->toString(), test.expected_params[i]);
     }
 }
+
+TEST(ParserTest, TestParseArrayLiterals) {
+    const std::string input = "[5, 3 * 3, 5 + 1]";
+    Lexer lexer(input);
+    Parser parser(lexer);
+
+    auto program = parser.parseProgram();
+    checkParseErrors(parser);
+
+    auto arr = program->getStatementAt(0)->getExpr();
+
+    EXPECT_EQ(arr->getElements().size(), 3);
+    EXPECT_EQ(arr->getElements()[0]->toString(), "5");
+    EXPECT_EQ(arr->getElements()[1]->toString(), "(3 * 3)");
+    EXPECT_EQ(arr->getElements()[2]->toString(), "(5 + 1)");
+}
+
+TEST(ParserTest, TestParseEmptyArrayLiteral) {
+    const std::string input = "[]";
+    Lexer lexer(input);
+    Parser parser(lexer);
+
+    auto program = parser.parseProgram();
+    checkParseErrors(parser);
+
+    auto arr = program->getStatementAt(0)->getExpr();
+
+    EXPECT_EQ(arr->getElements().size(), 0);
+}
