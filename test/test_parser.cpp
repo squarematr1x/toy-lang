@@ -238,7 +238,9 @@ TEST(ParserTest, TestOperatorPrecedenceParsing) {
         {"!(true == true)", "(!(true == true))"},
         {"a + add(b * c) + d", "((a + add((b * c))) + d)"},
         {"foo(a, b, 4, x*y, bar(x, y))", "foo(a, b, 4, (x * y), bar(x, y))"},
-        {"test(a + b + c * d / f + g)", "test((((a + b) + ((c * d) / f)) + g))"}
+        {"test(a + b + c * d / f + g)", "test((((a + b) + ((c * d) / f)) + g))"},
+        {"a * [1, 2, 3][x * y] * z", "((a * ([1, 2, 3][(x * y)])) * z)"},
+        {"add(x * y[2], c[3], 2 * [0, 1][1])", "add((x * (y[2])), (c[3]), (2 * ([0, 1][1])))"}
     };
     
     for (const auto& test: tests) {
@@ -435,4 +437,18 @@ TEST(ParserTest, TestParseEmptyArrayLiteral) {
     auto arr = program->getStatementAt(0)->getExpr();
 
     EXPECT_EQ(arr->getElements().size(), 0);
+}
+
+TEST(ParserTest, TestParseIndexExpr) {
+    const std::string input = "someArray[1 + 2];";
+    Lexer lexer(input);
+    Parser parser(lexer);
+
+    auto program = parser.parseProgram();
+    checkParseErrors(parser);
+
+    auto arr = program->getStatementAt(0)->getExpr();
+
+    EXPECT_EQ(arr->getLeft()->toString(), "someArray");
+    EXPECT_EQ(arr->getIndex()->toString(), "(1 + 2)");
 }
