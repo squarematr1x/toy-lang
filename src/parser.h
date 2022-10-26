@@ -12,7 +12,8 @@ enum precedence {
     SUM,
     MUL,
     PREFIX,
-    CALL
+    CALL,
+    INDEX,
 };
 
 class Parser {
@@ -49,6 +50,7 @@ public:
     std::shared_ptr<Expr> parseFuncLiteral();
     std::shared_ptr<Expr> parseCallExpr(std::shared_ptr<Expr> func);
     std::shared_ptr<Expr> parseArrayLiteral();
+    std::shared_ptr<Expr> parseIndexExpr(std::shared_ptr<Expr> left);
 
     std::shared_ptr<BlockStatement> parseBlockStatement();
 

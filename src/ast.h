@@ -20,6 +20,7 @@ enum node_type {
     NODE_FLOAT,
     NODE_STR,
     NODE_ARRAY,
+    NODE_INDEX,
     NODE_IDENT,
     NODE_BOOL,
     NODE_PREFIX,
@@ -42,6 +43,7 @@ public:
     virtual std::shared_ptr<Expr> getExpr() { return nullptr; }
     virtual std::shared_ptr<Expr> getLeft() { return nullptr; }
     virtual std::shared_ptr<Expr> getRight() { return nullptr; }
+    virtual std::shared_ptr<Expr> getIndex() { return nullptr; }
     virtual std::shared_ptr<Expr> getCondition() { return nullptr; }
     virtual std::shared_ptr<Expr> getFunc() { return nullptr; }
     virtual std::shared_ptr<BlockStatement> getConsequence() { return nullptr; }
@@ -186,6 +188,26 @@ public:
     std::vector<std::shared_ptr<Expr>> getElements() override { return m_elements; }
 
     int nodeType() const override { return NODE_ARRAY; }
+};
+
+class IndexExpr: public Expr {
+    Token m_tok;
+    // <expr>[<expr>]
+    std::shared_ptr<Expr> m_left;
+    std::shared_ptr<Expr> m_index;
+
+public:
+    IndexExpr(const Token& tok, std::shared_ptr<Expr> left);
+
+    void setIndex(std::shared_ptr<Expr> index) { m_index = index; }
+
+    std::string toString() const override;
+    const std::string tokenLiteral() const override { return m_tok.literal; }
+
+    std::shared_ptr<Expr> getLeft() override { return m_left; }
+    std::shared_ptr<Expr> getIndex() override { return m_index; }
+
+    int nodeType() const override { return NODE_INDEX; }
 };
 
 class PrefixExpr: public Expr {

@@ -169,6 +169,14 @@ std::string ArrayLiteral::toString() const {
     return arr_str;
 }
 
+IndexExpr::IndexExpr(const Token& tok, std::shared_ptr<Expr> left)
+    : m_tok(tok), m_left(left) {
+}
+
+std::string IndexExpr::toString() const {
+    return "(" + m_left->toString() + "[" + m_index->toString() + "])";
+}
+
 LetStatement::LetStatement(const Token& tok)
     : m_tok(tok) {
 }

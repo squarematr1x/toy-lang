@@ -146,6 +146,8 @@ std::shared_ptr<Expr> Parser::parseExpr(int precedence) {
 
         if (m_cur_tok.type == TOK_LPAREN)
             left_expr = parseCallExpr(left_expr);
+        else if (m_cur_tok.type == TOK_LBRACKET)
+            left_expr = parseIndexExpr(left_expr);
         else
             left_expr = parseInfixExpr(left_expr);
     }
@@ -282,6 +284,18 @@ std::shared_ptr<Expr> Parser::parseArrayLiteral() {
     return arr;
 }
 
+std::shared_ptr<Expr> Parser::parseIndexExpr(std::shared_ptr<Expr> left) {
+    auto expr = std::make_shared<IndexExpr>(m_cur_tok, left);
+
+    nextToken();
+    expr->setIndex(parseExpr(LOWEST));
+
+    if (!expectPeek(TOK_RBRACKET))
+        return nullptr;
+    
+    return expr;
+}
+
 std::vector<std::shared_ptr<Expr>> Parser::parseExprList(token_type end_tok) {
     std::vector<std::shared_ptr<Expr>> list;
 
@@ -382,7 +396,8 @@ bool Parser::isInfix(int tok_type) {
         tok_type == TOK_DIV ||
         tok_type == TOK_LT ||
         tok_type == TOK_GT ||
-        tok_type == TOK_LPAREN
+        tok_type == TOK_LPAREN ||
+        tok_type == TOK_LBRACKET
     ) {
         return true;
     }
@@ -411,6 +426,8 @@ int Parser::getPrecedence(int tok_type) {
         return LESSGREATER;
     case TOK_LPAREN:
         return CALL;
+    case TOK_LBRACKET:
+        return INDEX;
     default:
         return LOWEST;
     }
