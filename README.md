@@ -18,6 +18,16 @@ toy-lang is currently a tree-walking interpreter, which transpiles to C++. In th
 true
 >> 9*5 > 455-2
 false
+>> let a = "blaah";
+>> len(a)
+5
+>> let arr = [1, 3.25, true, "Hello" + " world!"];
+>> arr[1]
+3.25
+>> arr[3]
+Hello world!
+>> len(arr[3])
+12
 ```
 
 ### Build and run
