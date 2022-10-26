@@ -19,6 +19,8 @@ ObjectPtr evalFloatInfixExpr(const std::string& oprtr, const ObjectPtr& left, co
 ObjectPtr evalStringInfixExpr(const std::string& oprtr, const ObjectPtr& left, const ObjectPtr& right);
 ObjectPtr evalIfExpr(const ASTNodePtr& node, EnvPtr env);
 ObjectPtr evalIdentifier(const ASTNodePtr& node, EnvPtr env);
+ObjectPtr evalIndexExpr(const ObjectPtr& left, const ObjectPtr& index);
+ObjectPtr evalArrayIndexExpr(const ObjectPtr& array, const ObjectPtr& index);
 
 ObjectPtr applyFunction(ObjectPtr func, std::vector<ObjectPtr> args, EnvPtr env);
 ObjectPtr unwrapReturnValue(ObjectPtr obj);

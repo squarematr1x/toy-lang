@@ -72,6 +72,24 @@ ObjectPtr eval(const ASTNodePtr& node, EnvPtr env) {
         auto body = node->getBody();
         return std::make_shared<Function>(params, body, env);
     }
+    case NODE_ARRAY: {
+        auto elements = evalExprs(node->getElements(), env);
+        if (elements.size() == 1 && isError(elements[0]))
+            return elements[0];
+        
+        return std::make_shared<Array>(elements);
+    }
+    case NODE_INDEX: {
+        auto left = eval(node->getLeft(), env);
+        if (isError(left))
+            return left;
+        
+        auto index = eval(node->getIndex(), env);
+        if (isError(index))
+            return index;
+        
+        return evalIndexExpr(left, index);
+    }
     default:
         return std::make_shared<NIL>();
     }
@@ -254,6 +272,24 @@ std::vector<ObjectPtr> evalExprs(std::vector<std::shared_ptr<Expr>> args, EnvPtr
     }
 
     return result;
+}
+
+ObjectPtr evalIndexExpr(const ObjectPtr& left, const ObjectPtr& index) {
+    if (left->getType() == OBJ_ARRAY && index->getType() == OBJ_INT)
+        return evalArrayIndexExpr(left, index);
+    // TODO: Add support for strings also ("test"[2] -> "s").
+
+    return std::make_shared<Error>(("index operator not supported: " + left->typeString()));
+}
+
+ObjectPtr evalArrayIndexExpr(const ObjectPtr& array, const ObjectPtr& index) {
+    const size_t i = static_cast<size_t>(index->getIntVal());
+    const size_t max = array->getElements().size() - 1;
+
+    if (i < 0 || i > max)
+        return std::make_shared<NIL>();
+
+    return array->getElements()[i];
 }
 
 ObjectPtr applyFunction(ObjectPtr func, std::vector<ObjectPtr> args, EnvPtr env) {

@@ -9,6 +9,7 @@ enum object_type {
     OBJ_FLOAT,
     OBJ_STR,
     OBJ_BOOL,
+    OBJ_ARRAY,
     OBJ_RETURN,
     OBJ_FUNC,
     OBJ_BUILTIN,
@@ -17,6 +18,9 @@ enum object_type {
 };
 
 class Env;
+struct Object;
+
+typedef std::shared_ptr<Object> ObjectPtr;
 
 struct Object {
     std::string type;
@@ -38,6 +42,7 @@ struct Object {
     virtual std::weak_ptr<Env> getEnv() { return std::weak_ptr<Env>(); }
 
     virtual const std::vector<Identifier> getParams() const { return {}; }
+    virtual std::vector<ObjectPtr> getElements() { return {}; }
 
     virtual ~Object() = default;
 };
@@ -96,6 +101,19 @@ struct String: public Object {
     std::string getStrVal() const override { return value; }
 
     int getType() const override { return OBJ_STR; }
+};
+
+struct Array: public Object {
+    std::vector<ObjectPtr> elements;
+
+    Array(std::vector<ObjectPtr> elements_in) : elements(elements_in) {}
+
+    const std::string inspect() const override;
+    const std::string typeString() const override { return "ARRAY"; }
+
+    std::vector<ObjectPtr> getElements() override { return { elements }; }
+
+    int getType() const override { return OBJ_ARRAY; }
 };
 
 struct Return: public Object {
@@ -161,5 +179,3 @@ struct Error: public Object {
 
     int getType() const override { return OBJ_ERROR; }
 };
-
-typedef std::shared_ptr<Object> ObjectPtr;
