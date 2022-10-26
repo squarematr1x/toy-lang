@@ -317,3 +317,60 @@ TEST(EvaluatorTest, TestBuiltinFunctionErrors) {
         EXPECT_EQ(obj->getType(), OBJ_ERROR);
     }
 }
+
+TEST(EvaluatorTest, TestEvalArrayLiterals) {
+    const std::string input = "[1, 2*3, 4.25+0.25, false, \"a some_str\"]";
+
+    EnvPtr env = std::make_shared<Env>();
+    Lexer lexer(input);
+    Parser parser(lexer);
+    auto obj = evaluator::eval(parser.parseProgram(), env);
+
+    EXPECT_EQ(obj->getType(), OBJ_ARRAY);
+    EXPECT_EQ(obj->getElements().size(), 5);
+    EXPECT_EQ(obj->getElements()[0]->getIntVal(), 1);
+    EXPECT_EQ(obj->getElements()[1]->getIntVal(), 6);
+    EXPECT_EQ(obj->getElements()[2]->getFloatVal(), 4.5);
+    EXPECT_EQ(obj->getElements()[3]->getBoolVal(), false);
+    EXPECT_EQ(obj->getElements()[4]->getStrVal(), "a some_str");
+}
+
+TEST(EvaluatorTest, TestEvalArrayIndexExpressions) {
+    const std::vector<EvalTest<int>> tests = {
+        {"[12, 7, -5][0]", 12},
+        {"[12, 7, -5][1]", 7},
+        {"[12, 7, -5][2]", -5},
+        {"let i = 0; [6, 3][i]", 6},
+        {"[1, 2, 3, 4][1+2]", 4},
+        {"let arr = [-1, 22, 13]; arr[1];", 22},
+        {"let arr = [2, 5, 7]; arr[0] + arr[1] + arr[2]", 14},
+        {"let arr = [1, 25, 3]; let i = arr[0]; arr[i]", 25}
+    };
+
+    for (const auto& test : tests) {
+        EnvPtr env = std::make_shared<Env>();
+        Lexer lexer(test.input);
+        Parser parser(lexer);
+        auto obj = evaluator::eval(parser.parseProgram(), env);
+
+        EXPECT_EQ(obj->getIntVal(), test.expected);
+        EXPECT_EQ(obj->getType(), OBJ_INT);
+    }
+}
+
+TEST(EvaluatorTest, TestEvalArrayIndexExpressionsError) {
+    const std::vector<EvalTest<std::string>> tests = {
+        {"[1, 2, 5][3]", "nil"},
+        {"[1, 2, 5][-1]", "nil"}
+    };
+
+    for (const auto& test : tests) {
+        EnvPtr env = std::make_shared<Env>();
+        Lexer lexer(test.input);
+        Parser parser(lexer);
+        auto obj = evaluator::eval(parser.parseProgram(), env);
+    
+        EXPECT_EQ(obj->inspect(), test.expected);
+        EXPECT_EQ(obj->getType(), OBJ_NIL);
+    }
+}
