@@ -277,7 +277,8 @@ std::vector<ObjectPtr> evalExprs(std::vector<std::shared_ptr<Expr>> args, EnvPtr
 ObjectPtr evalIndexExpr(const ObjectPtr& left, const ObjectPtr& index) {
     if (left->getType() == OBJ_ARRAY && index->getType() == OBJ_INT)
         return evalArrayIndexExpr(left, index);
-    // TODO: Add support for strings also ("test"[2] -> "s").
+    if (left->getType() == OBJ_STR && index->getType() == OBJ_INT)
+        return evalStringIndexExpr(left, index);
 
     return std::make_shared<Error>(("index operator not supported: " + left->typeString()));
 }
@@ -290,6 +291,16 @@ ObjectPtr evalArrayIndexExpr(const ObjectPtr& array, const ObjectPtr& index) {
         return std::make_shared<NIL>();
 
     return array->getElements()[i];
+}
+
+ObjectPtr evalStringIndexExpr(const ObjectPtr& str, const ObjectPtr& index) {
+    const size_t i = static_cast<size_t>(index->getIntVal());
+    const size_t max = str->getStrVal().length() - 1;
+
+    if (i < 0 || i > max)
+        return std::make_shared<NIL>();
+
+    return std::make_shared<String>(std::string(1, str->getStrVal()[i]));
 }
 
 ObjectPtr applyFunction(ObjectPtr func, std::vector<ObjectPtr> args, EnvPtr env) {

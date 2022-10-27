@@ -21,6 +21,7 @@ ObjectPtr evalIfExpr(const ASTNodePtr& node, EnvPtr env);
 ObjectPtr evalIdentifier(const ASTNodePtr& node, EnvPtr env);
 ObjectPtr evalIndexExpr(const ObjectPtr& left, const ObjectPtr& index);
 ObjectPtr evalArrayIndexExpr(const ObjectPtr& array, const ObjectPtr& index);
+ObjectPtr evalStringIndexExpr(const ObjectPtr& str, const ObjectPtr& index);
 
 ObjectPtr applyFunction(ObjectPtr func, std::vector<ObjectPtr> args, EnvPtr env);
 ObjectPtr unwrapReturnValue(ObjectPtr obj);
