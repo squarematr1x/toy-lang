@@ -1,6 +1,7 @@
 #include "repl.h"
 #include "parser.h"
 #include "evaluator.h"
+#include "util.h"
 
 #include <iostream>
 #include <string>
@@ -19,21 +20,24 @@ void start() {
 
         if (line == "exit")
             break;
+        else if (line == "clear")
+            util::clear();
+        else {
+            Lexer lexer(line);
+            Parser parser(lexer);
+            auto program = parser.parseProgram();
+
+            if (parser.errors().size() != 0) {
+                printParsingErrors(parser.errors());
+                break;
+            }
+
+            const std::string program_str = program->toString();
+            auto evaluated = evaluator::eval((program), env);
         
-        Lexer lexer(line);
-        Parser parser(lexer);
-        auto program = parser.parseProgram();
-
-        if (parser.errors().size() != 0) {
-            printParsingErrors(parser.errors());
-            break;
+            if (evaluated)
+                std::cout << evaluated->inspect() << '\n';
         }
-
-        const std::string program_str = program->toString();
-        auto evaluated = evaluator::eval((program), env);
-    
-        if (evaluated)
-            std::cout << evaluated->inspect() << '\n';
 
 #ifdef __DEBUG__
         std::cout << "Tree structure: ";
