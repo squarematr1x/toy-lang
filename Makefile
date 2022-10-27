@@ -48,8 +48,8 @@ build:
 run: all
 	./$(APP_DIR)/$(TARGET)
 
-.PHONY: run-with-memory-check
-run-with-memory-check: all
+.PHONY: check-leak-run
+check-leak-run: all
 	valgrind --leak-check=full -v ./$(APP_DIR)/$(TARGET)
 
 .PHONY: debug
@@ -62,6 +62,10 @@ test: build $(APP_TEST_DIR)/$(TARGET)
 .PHONY: run-tests
 run-tests: test
 	./$(APP_TEST_DIR)/$(TARGET)
+
+.PHONY: check-leak-test
+check-leak-test: test
+	valgrind --leak-check=full -v ./$(APP_TEST_DIR)/$(TARGET)
 
 .PHONY: clean
 clean:
