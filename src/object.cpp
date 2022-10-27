@@ -15,7 +15,7 @@ const std::string Array::inspect() const {
         arr_str += elements[i]->inspect();
 
         if (i < n - 1)
-            arr_str += ",";
+            arr_str += ", ";
     }
     arr_str += "]";
 
@@ -29,7 +29,7 @@ const std::string Function::inspect() const {
         func_str += params[i].toString();
 
         if (i < n - 1)
-            func_str += ",";
+            func_str += ", ";
     }
     
     func_str += ") {\n";

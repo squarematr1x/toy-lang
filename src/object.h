@@ -27,7 +27,7 @@ struct Object {
 
     Object() = default;
 
-    virtual const std::string inspect() const { return ""; }
+    virtual const std::string inspect() const { return "-_-"; }
     virtual const std::string typeString() const { return ""; }
 
     virtual int getType() const { return -1; }
@@ -43,6 +43,8 @@ struct Object {
 
     virtual const std::vector<Identifier> getParams() const { return {}; }
     virtual std::vector<ObjectPtr> getElements() { return {}; }
+
+    virtual std::shared_ptr<Object> clone() { return std::make_shared<Object>(*this); }
 
     virtual ~Object() = default;
 };
@@ -60,6 +62,8 @@ struct Integer: public Object {
     int getIntVal() const override { return value; }
     bool getBoolVal() const override { return value; }
     double getFloatVal() const override { return static_cast<double>(value); }
+
+    std::shared_ptr<Object> clone() override { return std::make_shared<Integer>(*this); }
 };
 
 struct Float: public Object {
@@ -75,6 +79,8 @@ struct Float: public Object {
     int getIntVal() const override { return static_cast<int>(value); }
     bool getBoolVal() const override { return static_cast<bool>(value); }
     double getFloatVal() const override { return value; }
+
+    std::shared_ptr<Object> clone() override { return std::make_shared<Float>(*this); }
 };
 
 struct Bool: public Object {
@@ -89,6 +95,8 @@ struct Bool: public Object {
     int getIntVal() const override { return value; }
 
     bool getBoolVal() const override { return value; }
+
+    std::shared_ptr<Object> clone() override { return std::make_shared<Bool>(*this); }
 };
 
 struct String: public Object {
@@ -101,6 +109,8 @@ struct String: public Object {
     std::string getStrVal() const override { return value; }
 
     int getType() const override { return OBJ_STR; }
+
+    std::shared_ptr<Object> clone() override { return std::make_shared<String>(*this); }
 };
 
 struct Array: public Object {
@@ -114,6 +124,8 @@ struct Array: public Object {
     std::vector<ObjectPtr> getElements() override { return { elements }; }
 
     int getType() const override { return OBJ_ARRAY; }
+
+    std::shared_ptr<Object> clone() override { return std::make_shared<Array>(*this); }
 };
 
 struct Return: public Object {
@@ -127,6 +139,8 @@ struct Return: public Object {
     int getType() const override { return OBJ_RETURN; }
 
     std::shared_ptr<Object> getObjValue() override { return value; }
+
+    std::shared_ptr<Object> clone() override { return std::make_shared<Return>(*this); }
 };
 
 struct Function: public Object {
@@ -147,6 +161,8 @@ struct Function: public Object {
     const std::vector<Identifier> getParams() const override { return params; }
 
     int getType() const override { return OBJ_FUNC; }
+
+    std::shared_ptr<Object> clone() override { return std::make_shared<Function>(*this); }
 };
 
 struct Builtin: public Object {
@@ -158,6 +174,8 @@ struct Builtin: public Object {
     std::string getStrVal() const override { return builtin_name; }
 
     int getType() const override { return OBJ_BUILTIN; }
+
+    std::shared_ptr<Object> clone() override { return std::make_shared<Builtin>(*this); }
 };
 
 struct NIL: public Object {
@@ -167,6 +185,8 @@ struct NIL: public Object {
     int getType() const override { return OBJ_NIL; }
 
     bool getBoolVal() const override { return false; }
+
+    std::shared_ptr<Object> clone() override { return std::make_shared<NIL>(*this); }
 };
 
 struct Error: public Object {
@@ -178,4 +198,6 @@ struct Error: public Object {
     const std::string typeString() const override { return "ERROR"; }
 
     int getType() const override { return OBJ_ERROR; }
+
+    std::shared_ptr<Object> clone() override { return std::make_shared<Error>(*this); }
 };
