@@ -18,6 +18,6 @@ ObjectPtr Env::get(const std::string& name) {
 ObjectPtr Env::set(const std::string& name, ObjectPtr value) {
     m_store[name] = value;
 
-    return value;
+    return std::make_shared<NIL>();
 }
 

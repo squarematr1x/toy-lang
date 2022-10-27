@@ -35,7 +35,7 @@ void start() {
             const std::string program_str = program->toString();
             auto evaluated = evaluator::eval((program), env);
         
-            if (evaluated)
+            if (evaluated && evaluated->getType() != OBJ_NIL)
                 std::cout << evaluated->inspect() << '\n';
         }
 
