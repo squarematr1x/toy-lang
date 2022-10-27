@@ -60,7 +60,7 @@ ObjectPtr eval(const ASTNodePtr& node, EnvPtr env) {
         auto func = eval(node->getFunc(), env);
         if (isError(func))
             return func;
-        
+
         auto args = evalExprs(node->getArgs(), env);
         if (args.size() == 1 && isError(args[0]))
             return args[0];
@@ -113,13 +113,16 @@ ObjectPtr evalProgram(std::vector<std::shared_ptr<Statement>> statements, EnvPtr
 ObjectPtr evalBlock(std::vector<std::shared_ptr<Statement>> statements, EnvPtr env) {
     std::shared_ptr<Object> result = nullptr;
 
+    if (statements.size() == 0)
+        return std::make_shared<NIL>();
+
     for (auto& statement: statements) {
         result = eval(statement, env);
 
         if (result->getType() == OBJ_RETURN || result->getType() == OBJ_ERROR)
             return result;
     }
-    
+
     return result;
 }
 
@@ -307,6 +310,11 @@ ObjectPtr applyFunction(ObjectPtr func, std::vector<ObjectPtr> args, EnvPtr env)
     switch (func->getType())
     {
     case OBJ_FUNC: {
+        const size_t n_params = func->getParams().size();
+        const size_t n_args = args.size();
+        if (n_params != n_args)
+            return std::make_shared<Error>("wrong number of arguments. got=" + std::to_string(n_args) + ", want=" + std::to_string(n_params));
+
         auto extended_env = extendFunctionEnv(func->getParams(), args, env);
         auto evaluated = evalBlock(func->getBody()->getStatements(), extended_env);
 

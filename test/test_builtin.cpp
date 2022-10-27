@@ -55,8 +55,8 @@ TEST(BuiltinTest, TestBuiltinPush) {
     };
 
     const std::vector<BuiltinTest<std::string>> tests_b = {
-        {"let a = [2*2, \"hello\", true, [4, 5]]; let b = push(a, 9); a", "[4, hello, true, [4, 5]]"},
-        {"let a = [2*2, \"hello\", true, [4, 5]]; let b = push(a, 9); b", "[4, hello, true, [4, 5], 9]"}
+        {"let a = [2*2, \"hello\", true, [4, 5]]; let b = push(a, 9); a", "[4, 'hello', true, [4, 5]]"},
+        {"let a = [2*2, \"hello\", true, [4, 5]]; let b = push(a, 9); b", "[4, 'hello', true, [4, 5], 9]"}
     };
 
     for (const auto& test : tests_a) {

@@ -27,7 +27,7 @@ struct Object {
 
     Object() = default;
 
-    virtual const std::string inspect() const { return "-_-"; }
+    virtual const std::string inspect() const { return ""; }
     virtual const std::string typeString() const { return ""; }
 
     virtual int getType() const { return -1; }
@@ -104,7 +104,7 @@ struct String: public Object {
 
     String(const std::string& value_in) : value(value_in) {}
 
-    const std::string inspect() const override { return value; }
+    const std::string inspect() const override { return ("'" + value + "'"); }
     const std::string typeString() const override { return "STRING"; }
     std::string getStrVal() const override { return value; }
 

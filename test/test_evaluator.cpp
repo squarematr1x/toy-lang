@@ -273,6 +273,23 @@ TEST(EvaluatorTest, TestEvalFunctionApp) {
     }
 }
 
+TEST(EvaluatorTest, TestEvalFunctioErrors) {
+    const std::vector<BuiltinTest<std::string>> tests = {
+        {"let foo = func(x) { return 2*x; }; foo();", "Error: wrong number of arguments. got=0, want=1"},
+        {"let foo = func(x) { return 2*x; }; foo(4, 5);", "Error: wrong number of arguments. got=2, want=1"},
+        {"let foo = func(x, y) { return 2*x; }; foo(2.2);", "Error: wrong number of arguments. got=1, want=2"}
+    };
+
+    for (const auto& test : tests) {
+        EnvPtr env = std::make_shared<Env>();
+        Lexer lexer(test.input);
+        Parser parser(lexer);
+        auto obj = evaluator::eval(parser.parseProgram(), env);
+        EXPECT_EQ(obj->inspect(), test.expected);
+        EXPECT_EQ(obj->getType(), OBJ_ERROR);
+    }
+}
+
 TEST(EvaluatorTest, TestStringConcatenation) {
     const std::string input = "\"How are\" + \" you?\"";
     EnvPtr env;
