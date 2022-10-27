@@ -4,13 +4,13 @@
 #include "../src/evaluator.h"
 
 template <typename T>
-struct EvalTest {
+struct BuiltinTest {
     std::string input;
     T expected;
 };
 
 TEST(EvaluatorTest, TestEvalIntegerExpr) {
-    const std::vector<EvalTest<int>> tests = {
+    const std::vector<BuiltinTest<int>> tests = {
         {"5", 5},
         {"17", 17},
         {"-99", -99},
@@ -40,7 +40,7 @@ TEST(EvaluatorTest, TestEvalIntegerExpr) {
 }
 
 TEST(EvaluatorTest, TestEvalFloatExpr) {
-    const std::vector<EvalTest<double>> tests = {
+    const std::vector<BuiltinTest<double>> tests = {
         {"5.0", 5.0},
         {"17.11", 17.11},
         {"-99.234", -99.234},
@@ -80,7 +80,7 @@ TEST(EvaluatorTest, TestEvalStringLiteral) {
 }
 
 TEST(EvaluatorTest, TestEvalBoolExpr) {
-    const std::vector<EvalTest<bool>> tests = {
+    const std::vector<BuiltinTest<bool>> tests = {
         {"true", true},
         {"false", false},
         {"0 < 2", true},
@@ -119,7 +119,7 @@ TEST(EvaluatorTest, TestEvalBoolExpr) {
 }
 
 TEST(EvaluatorTest, TestEvalBangOperator) {
-    const std::vector<EvalTest<bool>> tests = {
+    const std::vector<BuiltinTest<bool>> tests = {
         {"!false", true},
         {"!2", false},
         {"!!true", true},
@@ -140,7 +140,7 @@ TEST(EvaluatorTest, TestEvalBangOperator) {
 }
 
 TEST(EvaluatorTest, TestEvalIfElseExpr) {
-    const std::vector<EvalTest<int>> int_out_tests = {
+    const std::vector<BuiltinTest<int>> int_out_tests = {
         {"if (true) { 1 }", 1},
         {"if (25) { 2 }", 2},
         {"if (9 < 11) { 15 }", 15},
@@ -148,7 +148,7 @@ TEST(EvaluatorTest, TestEvalIfElseExpr) {
         {"if (4 < 7) { 10 } else { 40 }", 10}
     };
 
-    const std::vector<EvalTest<std::string>> nil_out_tests = {
+    const std::vector<BuiltinTest<std::string>> nil_out_tests = {
         {"if (false) { 10 }", "nil"},
         {"if (1 > 2) { 10 }", "nil"}
     };
@@ -175,7 +175,7 @@ TEST(EvaluatorTest, TestEvalIfElseExpr) {
 }
 
 TEST(EvaluatorTest, TestEvalReturnStatements) {
-    const std::vector<EvalTest<int>> tests = {
+    const std::vector<BuiltinTest<int>> tests = {
         {"return 1;", 1},
         {"return 88; 2;", 88},
         {"return 3 * 4; 11;", 12},
@@ -196,7 +196,7 @@ TEST(EvaluatorTest, TestEvalReturnStatements) {
 }
 
 TEST(EvaluatorTest, TestErrorHandling) {
-    const std::vector<EvalTest<std::string>> tests = {
+    const std::vector<BuiltinTest<std::string>> tests = {
         {"-true", "Error: unknown operator: -BOOLEAN"},
         {"true + false;", "Error: unknown operator: BOOLEAN+BOOLEAN"},
         {"5; true + false; 5", "Error: unknown operator: BOOLEAN+BOOLEAN"},
@@ -218,7 +218,7 @@ TEST(EvaluatorTest, TestErrorHandling) {
 }
 
 TEST(EvaluatorTest, TestEvalLetStatements) {
-    const std::vector<EvalTest<int>> tests = {
+    const std::vector<BuiltinTest<int>> tests = {
         {"let x = 4; x;", 4},
         {"let x = 2*3; x;", 6},
         {"let foo = 3;  let bar = foo; bar;", 3},
@@ -250,7 +250,7 @@ TEST(EvaluatorTest, TestEvalFunctionObject) {
 }
 
 TEST(EvaluatorTest, TestEvalFunctionApp) {
-    const std::vector<EvalTest<int>> tests = {
+    const std::vector<BuiltinTest<int>> tests = {
         {"let test = func() { return -12; }; test();", -12},
         {"let echo = func(x) { x; }; echo(7);", 7},
         {"let echo = func(x) { return x; }; echo(7);", 7},
@@ -284,40 +284,6 @@ TEST(EvaluatorTest, TestStringConcatenation) {
     EXPECT_EQ(obj->getStrVal(), "How are you?");
 }   
 
-TEST(EvaluatorTest, TestBuiltinFunctions) {
-    const std::vector<EvalTest<int>> tests = {
-        {"len(\"\")", 0},
-        {"len(\"test\")", 4},
-        {"len(\"Hello world!\")", 12}
-    };
-
-    for (const auto& test : tests) {
-        EnvPtr env = std::make_shared<Env>();
-        Lexer lexer(test.input);
-        Parser parser(lexer);
-        auto obj = evaluator::eval(parser.parseProgram(), env);
-        EXPECT_EQ(obj->getIntVal(), test.expected);
-        EXPECT_EQ(obj->getType(), OBJ_INT);
-    }
-}
-
-TEST(EvaluatorTest, TestBuiltinFunctionErrors) {
-    const std::vector<EvalTest<std::string>> tests = {
-        {"len(4)", "Error: argument 'len' not supported, got=INTEGER"},
-        {"len(\"first\", \"second\")", "Error: wrong number of arguments. got=2, want=1"},
-        {"len()", "Error: wrong number of arguments. got=0, want=1"}
-    };
-
-    for (const auto& test : tests) {
-        EnvPtr env = std::make_shared<Env>();
-        Lexer lexer(test.input);
-        Parser parser(lexer);
-        auto obj = evaluator::eval(parser.parseProgram(), env);
-        EXPECT_EQ(obj->inspect(), test.expected);
-        EXPECT_EQ(obj->getType(), OBJ_ERROR);
-    }
-}
-
 TEST(EvaluatorTest, TestEvalArrayLiterals) {
     const std::string input = "[1, 2*3, 4.25+0.25, false, \"a some_str\"]";
 
@@ -336,7 +302,7 @@ TEST(EvaluatorTest, TestEvalArrayLiterals) {
 }
 
 TEST(EvaluatorTest, TestEvalArrayIndexExpressions) {
-    const std::vector<EvalTest<int>> tests = {
+    const std::vector<BuiltinTest<int>> tests = {
         {"[12, 7, -5][0]", 12},
         {"[12, 7, -5][1]", 7},
         {"[12, 7, -5][2]", -5},
@@ -344,7 +310,8 @@ TEST(EvaluatorTest, TestEvalArrayIndexExpressions) {
         {"[1, 2, 3, 4][1+2]", 4},
         {"let arr = [-1, 22, 13]; arr[1];", 22},
         {"let arr = [2, 5, 7]; arr[0] + arr[1] + arr[2]", 14},
-        {"let arr = [1, 25, 3]; let i = arr[0]; arr[i]", 25}
+        {"let arr = [1, 25, 3]; let i = arr[0]; arr[i]", 25},
+        {"let arr = [1, [2, 3, 4], 5]; arr[1][2]", 4}
     };
 
     for (const auto& test : tests) {
@@ -359,7 +326,7 @@ TEST(EvaluatorTest, TestEvalArrayIndexExpressions) {
 }
 
 TEST(EvaluatorTest, TestEvalArrayIndexExpressionsError) {
-    const std::vector<EvalTest<std::string>> tests = {
+    const std::vector<BuiltinTest<std::string>> tests = {
         {"[1, 2, 5][3]", "nil"},
         {"[1, 2, 5][-1]", "nil"}
     };
