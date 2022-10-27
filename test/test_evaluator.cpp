@@ -341,3 +341,40 @@ TEST(EvaluatorTest, TestEvalArrayIndexExpressionsError) {
         EXPECT_EQ(obj->getType(), OBJ_NIL);
     }
 }
+
+TEST(EvaluatorTest, TestEvalStringIndexExpressions) {
+    const std::vector<BuiltinTest<std::string>> tests = {
+        {"\"hello\"[0]", "h"},
+        {"\"hello\"[2]", "l"},
+        {"let str = \"just test\"; str[5]", "t"},
+        {"let str = \"just test\" let i = 1; str[i]", "u"},
+        {"let str = \"just test\"; str[2*2]", " "},
+    };
+
+    for (const auto& test : tests) {
+        EnvPtr env = std::make_shared<Env>();
+        Lexer lexer(test.input);
+        Parser parser(lexer);
+        auto obj = evaluator::eval(parser.parseProgram(), env);
+
+        EXPECT_EQ(obj->getStrVal(), test.expected);
+        EXPECT_EQ(obj->getType(), OBJ_STR);
+    }
+}
+
+TEST(EvaluatorTest, TestEvalStringIndexExpressionsError) {
+    const std::vector<BuiltinTest<std::string>> tests = {
+        {"\"ok\"[3]", "nil"},
+        {"\"ok still...\"[-1]", "nil"}
+    };
+
+    for (const auto& test : tests) {
+        EnvPtr env = std::make_shared<Env>();
+        Lexer lexer(test.input);
+        Parser parser(lexer);
+        auto obj = evaluator::eval(parser.parseProgram(), env);
+    
+        EXPECT_EQ(obj->inspect(), test.expected);
+        EXPECT_EQ(obj->getType(), OBJ_NIL);
+    }
+}
