@@ -9,6 +9,8 @@ ObjectPtr getBuiltin(const std::string& func_name, const std::vector<ObjectPtr>&
         return last(args);
     else if (func_name == "push")
         return push(args);
+    else if (func_name == "type")
+        return type(args);
 
     return std::make_shared<Error>("identifier not found: " + func_name);
 }
@@ -81,6 +83,15 @@ ObjectPtr push(const std::vector<ObjectPtr>& args) {
     return std::make_shared<Array>(new_arr);
 }
 
+ObjectPtr type(const std::vector<ObjectPtr>& args) {
+    const size_t n_args = args.size();
+
+    if (n_args != 1)
+        return std::make_shared<Error>("wrong number of arguments. got=" + std::to_string(n_args) + ", want=1");
+    
+    return std::make_shared<String>(("'" + args[0]->typeString() + "'"));
+}
+
 bool isBuiltIn(const std::string& func_name) {
     if (func_name == "len")
         return true;
@@ -89,6 +100,8 @@ bool isBuiltIn(const std::string& func_name) {
     else if (func_name == "last")
         return true;
     else if (func_name == "push")
+        return true;
+    else if (func_name == "type")
         return true;
 
     return false;

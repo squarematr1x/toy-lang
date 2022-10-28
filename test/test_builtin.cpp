@@ -78,6 +78,27 @@ TEST(BuiltinTest, TestBuiltinPush) {
     }
 }
 
+TEST(BuiltinTest, TestBuiltinType) {
+    const std::vector<BuiltinTest<std::string>> tests = {
+        {"type(25)", "'INTEGER'"},
+        {"type(5.2)", "'FLOAT'"},
+        {"type(false)", "'BOOLEAN'"},
+        {"type(\"yes yes\")", "'STRING'"},
+        {"type(func() { return 1; })", "'FUNC'"},
+        {"type([25, 1.2, \"hi\"])", "'ARRAY'"},
+        {"let test = 5.25; type(test)", "'FLOAT'"}
+    };
+
+    for (const auto& test : tests) {
+        EnvPtr env = std::make_shared<Env>();
+        Lexer lexer(test.input);
+        Parser parser(lexer);
+        auto obj = evaluator::eval(parser.parseProgram(), env);
+        EXPECT_EQ(obj->getStrVal(), test.expected);
+        EXPECT_EQ(obj->getType(), OBJ_STR);
+    }
+}
+
 TEST(BuiltinTest, TestBuiltinFunctionErrors) {
     const std::vector<BuiltinTest<std::string>> tests = {
         {"len(4)", "Error: argument 'len' not supported, got=INTEGER"},
@@ -92,7 +113,9 @@ TEST(BuiltinTest, TestBuiltinFunctionErrors) {
         {"last(true)", "Error: argument to 'last' must be ARRAY, got=BOOLEAN"},
         {"last(2, 24, 5.5)", "Error: wrong number of arguments. got=3, want=1"},
         {"push(5.2, a)", "Error: argument to 'push' must be ARRAY, got=FLOAT"},
-        {"push([1, 2, true], 2, 4)", "Error: wrong number of arguments. got=3, want=2"}
+        {"push([1, 2, true], 2, 4)", "Error: wrong number of arguments. got=3, want=2"},
+        {"type()", "Error: wrong number of arguments. got=0, want=1"},
+        {"type(2, 5.4)", "Error: wrong number of arguments. got=2, want=1"}
     };
 
     for (const auto& test : tests) {

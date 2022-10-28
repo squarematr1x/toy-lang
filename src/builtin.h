@@ -7,6 +7,7 @@ ObjectPtr len(const std::vector<ObjectPtr>& args);
 ObjectPtr first(const std::vector<ObjectPtr>& args);
 ObjectPtr last(const std::vector<ObjectPtr>& args);
 ObjectPtr push(const std::vector<ObjectPtr>& args);
+ObjectPtr type(const std::vector<ObjectPtr>& args);
 
 bool isBuiltIn(const std::string& func_name);
 
