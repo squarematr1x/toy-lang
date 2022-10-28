@@ -11,6 +11,8 @@ ObjectPtr getBuiltin(const std::string& func_name, const std::vector<ObjectPtr>&
         return push(args);
     else if (func_name == "type")
         return type(args);
+    else if (func_name == "print")
+        return print(args);
 
     return std::make_shared<Error>("identifier not found: " + func_name);
 }
@@ -92,17 +94,48 @@ ObjectPtr type(const std::vector<ObjectPtr>& args) {
     return std::make_shared<String>(("'" + args[0]->typeString() + "'"));
 }
 
+ObjectPtr print(const std::vector<ObjectPtr>& args) {
+    std::string str_out = "";
+
+    for (const auto& arg : args) {
+        if (!isPrintable(arg->getType()))
+            return std::make_shared<Error>("can't print object of type=" + arg->typeString());
+    
+        if (arg->getType() == OBJ_STR)
+            str_out += arg->getStrVal();
+        else
+            str_out += arg->inspect();
+    }
+
+    return std::make_shared<String>(str_out);
+}
+
 bool isBuiltIn(const std::string& func_name) {
     if (func_name == "len")
         return true;
-    else if (func_name == "first")
+    if (func_name == "first")
         return true;
-    else if (func_name == "last")
+    if (func_name == "last")
         return true;
-    else if (func_name == "push")
+    if (func_name == "push")
         return true;
-    else if (func_name == "type")
+    if (func_name == "type")
+        return true;
+    if (func_name == "print")
         return true;
 
     return false;
+}
+
+bool isPrintable(int obj_type) {
+    if (obj_type == OBJ_BUILTIN)
+        return false;
+    if (obj_type == OBJ_FUNC)
+        return false;
+    if (obj_type == OBJ_RETURN)
+        return false;
+    if (obj_type == OBJ_ERROR)
+        return false;
+    
+    return true;
 }
