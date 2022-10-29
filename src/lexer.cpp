@@ -15,12 +15,19 @@ void Lexer::readChar() {
     else
         m_char = m_input[static_cast<size_t>(m_read_pos)];
 
-    m_pos = m_read_pos;
     m_read_pos++;
 }
 
 void Lexer::skipWhitespace() {
     while (m_char == ' ' || m_char == '\n' || m_char == '\t' || m_char == '\r')
+        readChar();
+}
+
+void Lexer::skipComment() {
+    if (m_char != '#')
+        return;
+
+    while (m_char != 0 && m_char != '\n' && m_char != '\r')
         readChar();
 }
 
@@ -75,6 +82,8 @@ bool Lexer::isLetter(char c) {
 Token Lexer::nextToken() {
     Token tok;
 
+    skipWhitespace();
+    skipComment();
     skipWhitespace();
 
     std::string literal = std::string(1, m_char);

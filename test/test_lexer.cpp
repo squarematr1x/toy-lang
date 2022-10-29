@@ -113,3 +113,42 @@ TEST(LexerTest, TestGetNumberToken) {
         EXPECT_EQ(tok.type, test.second);
     }
 }
+
+TEST(LexerTest, TestIgnoreCommentLines) {
+    const std::string input = "let x = \"hello\";\n# A comment here\n 3+5.4;#2nd comment \r a != true;";
+    Lexer lexer(input);
+
+    const std::vector<Token> test_tokens = {
+        {TOK_LET, "let"},
+        {TOK_IDENT, "x"},
+        {TOK_ASSIGN, "="},
+        {TOK_STR, "hello"},
+        {TOK_SEMICOLON, ";"},
+        {TOK_INT, "3"},
+        {TOK_PLUS, "+"},
+        {TOK_FLOAT, "5.4"},
+        {TOK_SEMICOLON, ";"},
+        {TOK_IDENT, "a"},
+        {TOK_NOT_EQ, "!="},
+        {TOK_TRUE, "true"},
+        {TOK_SEMICOLON, ";"},
+        {TOK_EOF, ""}
+    };
+
+    for (const auto& test_tok : test_tokens) {
+        Token tok = lexer.nextToken();
+
+        EXPECT_EQ(tok.type, test_tok.type);
+        EXPECT_EQ(tok.literal, tok.literal);
+    }
+}
+
+TEST(LexerTest, TestIgnoreCommentEndingInEOF) {
+    const std::string input = "# Input is only one comment true != false; 3*2.4; no actual code...";
+    Lexer lexer(input);
+    const Token expected_tok = {TOK_EOF, ""};
+    Token tok = lexer.nextToken();
+
+    EXPECT_EQ(tok.type, expected_tok.type);
+    EXPECT_EQ(tok.literal, expected_tok.literal);
+}
