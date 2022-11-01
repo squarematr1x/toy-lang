@@ -258,9 +258,12 @@ TEST(EvaluatorTest, TestEvalFunctionApp) {
         {"let add = func(a, b) { a + b; }; add(5, 4);", 9},
         {"let add = func(a, b) { a + b; }; add(5 + 4, add(1, 2));", 12},
         {"func(x) { x; }(8);", 8},
-        {"let newAdder = func(x) { func(y) { x + y }; }; let addTwo = newAdder(2); addTwo(2);", 4},
         {"let a = func(x) { x*x; }; let b = func(x) { if (x > 10) { 1; } else {  0; } }; b(a(4));", 1},
-        {"let a = func(x) { x*x; }; let b = func(x) { if (x > 10) { return 1; } else {  return 0; } }; b(a(3));", 0}
+        {"let a = func(x) { x*x; }; let b = func(x) { if (x > 10) { return 1; } else {  return 0; } }; b(a(3));", 0},
+        {"let fac = func(n) { if (n==0) { return 1; } else { return n*fac(n-1) } }; fac(5)", 120},
+        {"let fib = func(n) { if (n==0) { 0 } else { if (n==1) { 1 } else { fib(n-1)+fib(n-2) } } }; fib(7)", 13},
+        {"let callTwice = func(x, f) { f(f(x)) }; let addTwo = func(x) { return x + 2 }; callTwice(1, addTwo)", 5},
+        {"let newAdder = func(x) { func(y) { x + y }; }; let addTwo = newAdder(2); addTwo(2);", 4}, // FIX: Closures doesn't seem to work now...
     };
 
     for (const auto& test : tests) {

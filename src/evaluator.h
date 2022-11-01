@@ -23,14 +23,14 @@ ObjectPtr evalIndexExpr(const ObjectPtr& left, const ObjectPtr& index);
 ObjectPtr evalArrayIndexExpr(const ObjectPtr& array, const ObjectPtr& index);
 ObjectPtr evalStringIndexExpr(const ObjectPtr& str, const ObjectPtr& index);
 
-ObjectPtr applyFunction(ObjectPtr func, std::vector<ObjectPtr> args, EnvPtr env);
+ObjectPtr applyFunction(ObjectPtr func, std::vector<ObjectPtr> args);
 ObjectPtr unwrapReturnValue(ObjectPtr obj);
 
 ObjectPtr error(const std::string& format);
 
 std::vector<ObjectPtr> evalExprs(std::vector<std::shared_ptr<Expr>> args, EnvPtr env);
 
-EnvPtr extendFunctionEnv(std::vector<Identifier> params, std::vector<ObjectPtr> args, EnvPtr env);
+EnvPtr extendFunctionEnv(const ObjectPtr& func, std::vector<ObjectPtr> args);
 
 bool isTrue(const ObjectPtr& obj);
 bool isError(const ObjectPtr& obj);

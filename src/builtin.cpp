@@ -91,7 +91,7 @@ ObjectPtr type(const std::vector<ObjectPtr>& args) {
     if (n_args != 1)
         return std::make_shared<Error>("wrong number of arguments. got=" + std::to_string(n_args) + ", want=1");
     
-    return std::make_shared<String>(("'" + args[0]->typeString() + "'"));
+    return std::make_shared<String>((args[0]->typeString()));
 }
 
 ObjectPtr print(const std::vector<ObjectPtr>& args) {

@@ -1,6 +1,8 @@
 #include "evaluator.h"
 #include "builtin.h"
 
+#include <iostream>
+
 namespace evaluator {
 
 ObjectPtr eval(const ASTNodePtr& node, EnvPtr env) {
@@ -65,7 +67,7 @@ ObjectPtr eval(const ASTNodePtr& node, EnvPtr env) {
         if (args.size() == 1 && isError(args[0]))
             return args[0];
         
-        return applyFunction(func, args, env);
+        return applyFunction(func, args);
     }
     case NODE_FUNC: {
         auto params = node->getParams();
@@ -306,7 +308,7 @@ ObjectPtr evalStringIndexExpr(const ObjectPtr& str, const ObjectPtr& index) {
     return std::make_shared<String>(std::string(1, str->getStrVal()[i]));
 }
 
-ObjectPtr applyFunction(ObjectPtr func, std::vector<ObjectPtr> args, EnvPtr env) {
+ObjectPtr applyFunction(ObjectPtr func, std::vector<ObjectPtr> args) {
     switch (func->getType())
     {
     case OBJ_FUNC: {
@@ -315,7 +317,7 @@ ObjectPtr applyFunction(ObjectPtr func, std::vector<ObjectPtr> args, EnvPtr env)
         if (n_params != n_args)
             return std::make_shared<Error>("wrong number of arguments. got=" + std::to_string(n_args) + ", want=" + std::to_string(n_params));
 
-        auto extended_env = extendFunctionEnv(func->getParams(), args, env);
+        auto extended_env = extendFunctionEnv(func, args);
         auto evaluated = evalBlock(func->getBody()->getStatements(), extended_env);
 
         return unwrapReturnValue(evaluated);
@@ -328,14 +330,18 @@ ObjectPtr applyFunction(ObjectPtr func, std::vector<ObjectPtr> args, EnvPtr env)
     }
 }
 
-EnvPtr extendFunctionEnv(std::vector<Identifier> params, std::vector<ObjectPtr> args, EnvPtr env) {
+EnvPtr extendFunctionEnv(const ObjectPtr& func, std::vector<ObjectPtr> args) {
+    auto outer_env = func->getEnv().lock();
+    auto new_env = std::make_shared<Env>(outer_env);
+    auto params = func->getParams();
     unsigned int i = 0;
+
     for (const auto& param : params) {
-        env->set(param.getIdentName(), args[i]);
+        new_env->set(param.getIdentName(), args[i]);
         i++;
     }
 
-    return env;
+    return new_env;
 }
 
 ObjectPtr unwrapReturnValue(ObjectPtr obj) {

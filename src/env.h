@@ -18,4 +18,6 @@ public:
 
     ObjectPtr get(const std::string& name);
     ObjectPtr set(const std::string& name, ObjectPtr value);
+
+    std::map<std::string, ObjectPtr> const getStore() { return m_store; }
 };

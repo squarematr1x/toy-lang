@@ -80,13 +80,13 @@ TEST(BuiltinTest, TestBuiltinPush) {
 
 TEST(BuiltinTest, TestBuiltinType) {
     const std::vector<BuiltinTest<std::string>> tests = {
-        {"type(25)", "'INTEGER'"},
-        {"type(5.2)", "'FLOAT'"},
-        {"type(false)", "'BOOLEAN'"},
-        {"type(\"yes yes\")", "'STRING'"},
-        {"type(func() { return 1; })", "'FUNC'"},
-        {"type([25, 1.2, \"hi\"])", "'ARRAY'"},
-        {"let test = 5.25; type(test)", "'FLOAT'"}
+        {"type(25)", "INTEGER"},
+        {"type(5.2)", "FLOAT"},
+        {"type(false)", "BOOLEAN"},
+        {"type(\"yes yes\")", "STRING"},
+        {"type(func() { return 1; })", "FUNC"},
+        {"type([25, 1.2, \"hi\"])", "ARRAY"},
+        {"let test = 5.25; type(test)", "FLOAT"}
     };
 
     for (const auto& test : tests) {
