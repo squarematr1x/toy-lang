@@ -70,7 +70,6 @@ TEST(LexerTest, TestNextToken) {
         {TOK_COMMA, ","},
         {TOK_INT, "3"},
         {TOK_RBRACKET, "]"},
-        // {\"a\":3}
         {TOK_LBRACE, "{"},
         {TOK_STR, "a"},
         {TOK_COLON, ":"},

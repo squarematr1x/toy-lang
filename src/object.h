@@ -21,7 +21,9 @@ enum object_type {
 
 class Env;
 struct Object;
+struct HashPair;
 
+typedef std::shared_ptr<HashPair> HashPairPtr;
 typedef std::shared_ptr<Object> ObjectPtr;
 
 struct HashKey {
@@ -30,6 +32,13 @@ struct HashKey {
 
     friend bool operator== (const HashKey& hash_key_a, const HashKey& hash_key_b);
     friend bool operator< (const HashKey& hash_key_a, const HashKey& hash_key_b);
+};
+
+struct HashPair {
+    ObjectPtr key;
+    ObjectPtr value;
+
+    HashPair(ObjectPtr key_in, ObjectPtr value_in) : key(key_in), value(value_in) {}
 };
 
 struct Object {
@@ -53,9 +62,10 @@ struct Object {
 
     virtual const std::vector<Identifier> getParams() const { return {}; }
     virtual std::vector<ObjectPtr> getElements() { return {}; }
-    virtual std::map<HashKey, std::pair<ObjectPtr, ObjectPtr>> getPairs() { return {}; }
+    virtual std::map<HashKey, HashPairPtr> getPairs() { return {}; }
 
     virtual HashKey hashKey() const { return {OBJ_NIL, -1}; }
+    virtual HashPairPtr getPairAt(HashKey key) { (void)key; return nullptr; }
 
     virtual std::shared_ptr<Object> clone() { return std::make_shared<Object>(*this); }
 
@@ -148,16 +158,17 @@ struct Array: public Object {
 };
 
 struct Hash: public Object {
-    std::map<HashKey, std::pair<ObjectPtr, ObjectPtr>> pairs;
+    std::map<HashKey, HashPairPtr> pairs;
 
-    Hash(std::map<HashKey, std::pair<ObjectPtr, ObjectPtr>> pairs_in) : pairs(pairs_in) {}
+    Hash(std::map<HashKey, HashPairPtr> pairs_in) : pairs(pairs_in) {}
 
     const std::string inspect() const override;
     const std::string typeString() const override { return "HASH"; }
 
     int getType() const override { return OBJ_HASH; }
 
-    std::map<HashKey, std::pair<ObjectPtr, ObjectPtr>> getPairs() override { return pairs; }
+    std::map<HashKey, HashPairPtr> getPairs() override { return pairs; }
+    HashPairPtr getPairAt(HashKey key) override;
 };
 
 struct Return: public Object {

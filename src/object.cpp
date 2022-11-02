@@ -22,6 +22,15 @@ HashKey String::hashKey() const {
     return {OBJ_STR, static_cast<int>(hashed_value)};
 }
 
+HashPairPtr Hash::getPairAt(HashKey key) {
+    auto search = pairs.find(key);
+
+    if (search != pairs.end())
+        return search->second;
+
+    return nullptr;
+}
+
 const std::string Array::inspect() const {
     std::string arr_str = "[";
 
@@ -39,10 +48,17 @@ const std::string Array::inspect() const {
 
 const std::string Hash::inspect() const {
     std::string hash_str = "{";
+    const size_t pairs_size = pairs.size();
 
-    for (const auto& pair : pairs) {
-        hash_str += pair.second.first->inspect();
-        hash_str += pair.second.second->inspect();
+    unsigned int i = 0;
+    for (const auto& [key, pair]: pairs) {
+        hash_str += pair->key->inspect();
+        hash_str += " : ";
+        hash_str += pair->value->inspect();
+
+        if (i < pairs_size - 1)
+            hash_str += ", "; 
+        i++;
     }
     hash_str += "}";
 

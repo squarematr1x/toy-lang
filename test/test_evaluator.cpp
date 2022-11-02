@@ -422,7 +422,7 @@ TEST(EvaluatorTest, TestEvalHashLiterals) {
 
     for (const auto& [hash_key, value] : expected) {
         auto pair = pairs[hash_key];
-        EXPECT_EQ(pair.second->getIntVal(), value);
+        EXPECT_EQ(pair->value->getIntVal(), value);
     }
 }
 
@@ -443,5 +443,23 @@ TEST(EvaluatorTest, TestEvalHashIndexing) {
     
         EXPECT_EQ(obj->getIntVal(), test.expected);
         EXPECT_EQ(obj->getType(), OBJ_INT);
+    }
+}
+
+TEST(EvaluatorTest, TestEvalHashIndexExpressionsError) {
+    const std::vector<BuiltinTest<std::string>> tests = {
+        {"{2: true, \"str\": false}[3]", "nil"},
+        {"{2: true, \"str\": false}[\"hi\"]", "nil"},
+        {"{2: true, \"str\": false}[\"true\"]", "nil"}
+    };
+
+    for (const auto& test : tests) {
+        EnvPtr env = std::make_shared<Env>();
+        Lexer lexer(test.input);
+        Parser parser(lexer);
+        auto obj = evaluator::eval(parser.parseProgram(), env);
+    
+        EXPECT_EQ(obj->inspect(), test.expected);
+        EXPECT_EQ(obj->getType(), OBJ_NIL);
     }
 }

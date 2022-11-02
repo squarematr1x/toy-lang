@@ -318,13 +318,15 @@ ObjectPtr evalHashIndexExpr(const ObjectPtr& hash, const ObjectPtr& index) {
     if (index_type != OBJ_INT && index_type != OBJ_BOOL && index_type != OBJ_STR)
         return std::make_shared<Error>(("unusable as hash key: " + index->typeString()));
     
-    auto pair = hash->getPairs()[index->hashKey()];
+    auto pair = hash->getPairAt(index->hashKey());
+    if (!pair)
+        return std::make_shared<NIL>();
 
-    return pair.second;
+    return pair->value;
 }
 
 ObjectPtr evalHashLiteral(const ASTNodePtr& node, EnvPtr env) {
-    std::map<HashKey, std::pair<ObjectPtr, ObjectPtr>> pairs;
+    std::map<HashKey, HashPairPtr> pairs;
 
     for (const auto& [key_node, value_node] : node->getPairs()) {
         auto key = eval(key_node, env);
@@ -340,7 +342,7 @@ ObjectPtr evalHashLiteral(const ASTNodePtr& node, EnvPtr env) {
         if (hashed.type == OBJ_NIL)
             return std::make_shared<Error>("unusable as hash key");
 
-        std::pair<ObjectPtr, ObjectPtr> pair = {key, value};
+        auto pair = std::make_shared<HashPair>(key, value);
         pairs[hashed] = pair;
     }
 
