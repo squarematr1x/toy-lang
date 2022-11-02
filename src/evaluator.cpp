@@ -81,6 +81,8 @@ ObjectPtr eval(const ASTNodePtr& node, EnvPtr env) {
         
         return std::make_shared<Array>(elements);
     }
+    case NODE_HASH:
+        return evalHashLiteral(node, env);
     case NODE_INDEX: {
         auto left = eval(node->getLeft(), env);
         if (isError(left))
@@ -282,6 +284,8 @@ std::vector<ObjectPtr> evalExprs(std::vector<std::shared_ptr<Expr>> args, EnvPtr
 ObjectPtr evalIndexExpr(const ObjectPtr& left, const ObjectPtr& index) {
     if (left->getType() == OBJ_ARRAY && index->getType() == OBJ_INT)
         return evalArrayIndexExpr(left, index);
+    if (left->getType() == OBJ_HASH)
+        return evalHashIndexExpr(left, index);
     if (left->getType() == OBJ_STR && index->getType() == OBJ_INT)
         return evalStringIndexExpr(left, index);
 
@@ -306,6 +310,41 @@ ObjectPtr evalStringIndexExpr(const ObjectPtr& str, const ObjectPtr& index) {
         return std::make_shared<NIL>();
 
     return std::make_shared<String>(std::string(1, str->getStrVal()[i]));
+}
+
+ObjectPtr evalHashIndexExpr(const ObjectPtr& hash, const ObjectPtr& index) {
+    int index_type = index->getType();
+
+    if (index_type != OBJ_INT && index_type != OBJ_BOOL && index_type != OBJ_STR)
+        return std::make_shared<Error>(("unusable as hash key: " + index->typeString()));
+    
+    auto pair = hash->getPairs()[index->hashKey()];
+
+    return pair.second;
+}
+
+ObjectPtr evalHashLiteral(const ASTNodePtr& node, EnvPtr env) {
+    std::map<HashKey, std::pair<ObjectPtr, ObjectPtr>> pairs;
+
+    for (const auto& [key_node, value_node] : node->getPairs()) {
+        auto key = eval(key_node, env);
+        if (isError(key))
+            return key;
+        
+        auto value = eval(value_node, env);
+        if (isError(value))
+            return value;
+        
+        auto hashed = key->hashKey();
+
+        if (hashed.type == OBJ_NIL)
+            return std::make_shared<Error>("unusable as hash key");
+
+        std::pair<ObjectPtr, ObjectPtr> pair = {key, value};
+        pairs[hashed] = pair;
+    }
+
+    return std::make_shared<Hash>(pairs);
 }
 
 ObjectPtr applyFunction(ObjectPtr func, std::vector<ObjectPtr> args) {

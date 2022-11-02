@@ -51,6 +51,7 @@ public:
     std::shared_ptr<Expr> parseCallExpr(std::shared_ptr<Expr> func);
     std::shared_ptr<Expr> parseArrayLiteral();
     std::shared_ptr<Expr> parseIndexExpr(std::shared_ptr<Expr> left);
+    std::shared_ptr<Expr> parseHashLiteral();
 
     std::shared_ptr<BlockStatement> parseBlockStatement();
 

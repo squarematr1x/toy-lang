@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <functional>
 
 #include "ast.h"
 
@@ -10,6 +11,7 @@ enum object_type {
     OBJ_STR,
     OBJ_BOOL,
     OBJ_ARRAY,
+    OBJ_HASH,
     OBJ_RETURN,
     OBJ_FUNC,
     OBJ_BUILTIN,
@@ -21,6 +23,14 @@ class Env;
 struct Object;
 
 typedef std::shared_ptr<Object> ObjectPtr;
+
+struct HashKey {
+    object_type type;
+    int value;
+
+    friend bool operator== (const HashKey& hash_key_a, const HashKey& hash_key_b);
+    friend bool operator< (const HashKey& hash_key_a, const HashKey& hash_key_b);
+};
 
 struct Object {
     std::string type;
@@ -43,6 +53,9 @@ struct Object {
 
     virtual const std::vector<Identifier> getParams() const { return {}; }
     virtual std::vector<ObjectPtr> getElements() { return {}; }
+    virtual std::map<HashKey, std::pair<ObjectPtr, ObjectPtr>> getPairs() { return {}; }
+
+    virtual HashKey hashKey() const { return {OBJ_NIL, -1}; }
 
     virtual std::shared_ptr<Object> clone() { return std::make_shared<Object>(*this); }
 
@@ -62,6 +75,8 @@ struct Integer: public Object {
     int getIntVal() const override { return value; }
     bool getBoolVal() const override { return value; }
     double getFloatVal() const override { return static_cast<double>(value); }
+
+    HashKey hashKey() const override { return {OBJ_INT, value}; }
 
     std::shared_ptr<Object> clone() override { return std::make_shared<Integer>(*this); }
 };
@@ -96,6 +111,8 @@ struct Bool: public Object {
 
     bool getBoolVal() const override { return value; }
 
+    HashKey hashKey() const override { return {OBJ_BOOL, static_cast<int>(value)}; }
+
     std::shared_ptr<Object> clone() override { return std::make_shared<Bool>(*this); }
 };
 
@@ -109,6 +126,8 @@ struct String: public Object {
     std::string getStrVal() const override { return value; }
 
     int getType() const override { return OBJ_STR; }
+
+    HashKey hashKey() const override;
 
     std::shared_ptr<Object> clone() override { return std::make_shared<String>(*this); }
 };
@@ -126,6 +145,19 @@ struct Array: public Object {
     int getType() const override { return OBJ_ARRAY; }
 
     std::shared_ptr<Object> clone() override { return std::make_shared<Array>(*this); }
+};
+
+struct Hash: public Object {
+    std::map<HashKey, std::pair<ObjectPtr, ObjectPtr>> pairs;
+
+    Hash(std::map<HashKey, std::pair<ObjectPtr, ObjectPtr>> pairs_in) : pairs(pairs_in) {}
+
+    const std::string inspect() const override;
+    const std::string typeString() const override { return "HASH"; }
+
+    int getType() const override { return OBJ_HASH; }
+
+    std::map<HashKey, std::pair<ObjectPtr, ObjectPtr>> getPairs() override { return pairs; }
 };
 
 struct Return: public Object {

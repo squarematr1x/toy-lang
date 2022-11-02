@@ -123,6 +123,8 @@ Token Lexer::nextToken() {
             tok = {TOK_SEMICOLON, literal}; break;
         case ',':
             tok = {TOK_COMMA, literal}; break;
+        case ':':
+            tok = {TOK_COLON, literal}; break;
         case '(':
             tok = {TOK_LPAREN, literal}; break;
         case ')':

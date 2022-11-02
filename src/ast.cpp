@@ -169,6 +169,20 @@ std::string ArrayLiteral::toString() const {
     return arr_str;
 }
 
+HashLiteral::HashLiteral(const Token& tok)
+    : m_tok(tok) {
+}
+
+std::string HashLiteral::toString() const {
+    std::string hash_str = "{";
+
+    for (auto const& [key, val] : m_pairs)
+        hash_str += key->toString() + ":" + val->toString();
+    hash_str += "}";
+
+    return hash_str;
+}
+
 IndexExpr::IndexExpr(const Token& tok, std::shared_ptr<Expr> left)
     : m_tok(tok), m_left(left) {
 }

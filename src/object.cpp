@@ -2,10 +2,25 @@
 
 #include <vector>
 
+bool operator== (const HashKey& hash_key_a, const HashKey& hash_key_b) {
+    return hash_key_a.value == hash_key_b.value;
+}
+
+bool operator< (const HashKey& hash_key_a, const HashKey& hash_key_b) {
+    return hash_key_a.value < hash_key_b.value;
+}
+
 const std::string Bool::inspect() const {
     if (value) return "true";
     return "false";
 };
+
+HashKey String::hashKey() const {
+    std::hash<std::string> hasher;
+    auto hashed_value = hasher(value);
+
+    return {OBJ_STR, static_cast<int>(hashed_value)};
+}
 
 const std::string Array::inspect() const {
     std::string arr_str = "[";
@@ -21,6 +36,18 @@ const std::string Array::inspect() const {
 
     return arr_str;
 };
+
+const std::string Hash::inspect() const {
+    std::string hash_str = "{";
+
+    for (const auto& pair : pairs) {
+        hash_str += pair.second.first->inspect();
+        hash_str += pair.second.second->inspect();
+    }
+    hash_str += "}";
+
+    return hash_str;
+}
 
 const std::string Function::inspect() const {
     std::string func_str = "func(";

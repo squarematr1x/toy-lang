@@ -121,6 +121,8 @@ std::shared_ptr<Expr> Parser::parseExpr(int precedence) {
         expr = parseGroupedExpr(); break;
     case TOK_LBRACKET:
         expr = parseArrayLiteral(); break;
+    case TOK_LBRACE:
+        expr = parseHashLiteral(); break;
     case TOK_IF:
         expr = parseIfExpr(); break;
     case TOK_FUNC:
@@ -294,6 +296,35 @@ std::shared_ptr<Expr> Parser::parseIndexExpr(std::shared_ptr<Expr> left) {
         return nullptr;
     
     return expr;
+}
+
+std::shared_ptr<Expr> Parser::parseHashLiteral() {
+    auto hash = std::make_shared<HashLiteral>(m_cur_tok);
+    std::map<std::shared_ptr<Expr>, std::shared_ptr<Expr>> pairs;
+
+    while (!peekTokenIs(TOK_RBRACE)) {
+        nextToken();
+
+        auto key = parseExpr(LOWEST);
+
+        if (!expectPeek(TOK_COLON))
+            return nullptr;
+        
+        nextToken();
+        auto value = parseExpr(LOWEST);
+
+        pairs[key] = value;
+
+        if (!peekTokenIs(TOK_RBRACE) && !expectPeek(TOK_COMMA))
+            return nullptr;
+    }
+
+    if (!expectPeek(TOK_RBRACE))
+        return nullptr;
+    
+    hash->setPairs(pairs);
+
+    return hash;
 }
 
 std::vector<std::shared_ptr<Expr>> Parser::parseExprList(token_type end_tok) {

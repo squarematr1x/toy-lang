@@ -22,6 +22,8 @@ ObjectPtr evalIdentifier(const ASTNodePtr& node, EnvPtr env);
 ObjectPtr evalIndexExpr(const ObjectPtr& left, const ObjectPtr& index);
 ObjectPtr evalArrayIndexExpr(const ObjectPtr& array, const ObjectPtr& index);
 ObjectPtr evalStringIndexExpr(const ObjectPtr& str, const ObjectPtr& index);
+ObjectPtr evalHashIndexExpr(const ObjectPtr& hash, const ObjectPtr& index);
+ObjectPtr evalHashLiteral(const ASTNodePtr& node, EnvPtr env);
 
 ObjectPtr applyFunction(ObjectPtr func, std::vector<ObjectPtr> args);
 ObjectPtr unwrapReturnValue(ObjectPtr obj);

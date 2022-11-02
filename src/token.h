@@ -31,6 +31,7 @@ enum token_type {
     // Delimiters
     TOK_COMMA,
     TOK_SEMICOLON,
+    TOK_COLON,
 
     // Parenthesis
     TOK_LPAREN,

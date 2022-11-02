@@ -20,11 +20,33 @@ enum node_type {
     NODE_FLOAT,
     NODE_STR,
     NODE_ARRAY,
+    NODE_HASH,
     NODE_INDEX,
     NODE_IDENT,
     NODE_BOOL,
     NODE_PREFIX,
     NODE_INFIX
+};
+
+const std::vector<std::string> node_lut = {
+    "NODE_BASIC",
+    "NODE_PROGRAM",
+    "NODE_EXPR_STMNT",
+    "NODE_BLOCK_STMNT",
+    "NODE_RETURN_STMNT",
+    "NODE_LET_STMNT",
+    "NODE_FUNC",
+    "NODE_CALL_EXPR",
+    "NODE_IF_EXPR",
+    "NODE_INT",
+    "NODE_FLOAT",
+    "NODE_STR",
+    "NODE_ARRAY",
+    "NODE_INDEX",
+    "NODE_IDENT",
+    "NODE_BOOL",
+    "NODE_PREFIX",
+    "NODE_INFIX"
 };
 
 class Expr;
@@ -54,6 +76,8 @@ public:
     virtual std::vector<std::shared_ptr<Statement>> getStatements() { return {}; }
     virtual std::vector<std::shared_ptr<Expr>> getArgs() { return {}; }
     virtual std::vector<std::shared_ptr<Expr>> getElements() { return {}; }
+
+    virtual std::map<std::shared_ptr<Expr>, std::shared_ptr<Expr>> getPairs() { return {}; }
 
     virtual int nodeType() const { return NODE_BASIC; }
     virtual int getIntValue() const { return -1; }
@@ -208,6 +232,23 @@ public:
     std::shared_ptr<Expr> getIndex() override { return m_index; }
 
     int nodeType() const override { return NODE_INDEX; }
+};
+
+class HashLiteral: public Expr {
+    Token m_tok;
+    std::map<std::shared_ptr<Expr>, std::shared_ptr<Expr>> m_pairs;
+
+public:
+    HashLiteral(const Token& tok);
+
+    void setPairs(std::map<std::shared_ptr<Expr>, std::shared_ptr<Expr>> pairs) { m_pairs = pairs; }
+
+    std::string toString() const override;
+    const std::string tokenLiteral() const override { return m_tok.literal; }
+
+    std::map<std::shared_ptr<Expr>, std::shared_ptr<Expr>> getPairs() override { return m_pairs; }
+
+    int nodeType() const override { return NODE_HASH; }
 };
 
 class PrefixExpr: public Expr {
