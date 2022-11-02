@@ -96,8 +96,8 @@ std::shared_ptr<ExprStatement> Parser::parseExprStatement() {
     return statement;
 }
 
-std::shared_ptr<Expr> Parser::parseExpr(int precedence) {
-    std::shared_ptr<Expr> expr = nullptr;
+ExprPtr Parser::parseExpr(int precedence) {
+    ExprPtr expr = nullptr;
 
     switch (m_cur_tok.type)
     {
@@ -157,13 +157,13 @@ std::shared_ptr<Expr> Parser::parseExpr(int precedence) {
     return left_expr;
 }
 
-std::shared_ptr<Expr> Parser::parseIdentifier() {
+ExprPtr Parser::parseIdentifier() {
     auto ident = std::make_shared<Identifier>(m_cur_tok, m_cur_tok.literal);
 
     return ident;
 }
 
-std::shared_ptr<Expr> Parser::parseIntegerLiteral() {
+ExprPtr Parser::parseIntegerLiteral() {
     auto int_lit = std::make_shared<IntegerLiteral>(m_cur_tok);
 
     if (!isNumber(m_cur_tok)) {
@@ -177,22 +177,22 @@ std::shared_ptr<Expr> Parser::parseIntegerLiteral() {
     return int_lit;
 }
 
-std::shared_ptr<Expr> Parser::parseFloatLiteral() {
+ExprPtr Parser::parseFloatLiteral() {
     auto float_lit = std::make_shared<FloatLiteral>(m_cur_tok);
     float_lit->setValue(stod(m_cur_tok.literal));
 
     return float_lit;
 }
 
-std::shared_ptr<Expr> Parser::parseStringLiteral() {
+ExprPtr Parser::parseStringLiteral() {
     return std::make_shared<StringLiteral>(m_cur_tok, m_cur_tok.literal);
 }
 
-std::shared_ptr<Expr> Parser::parseBoolean() {
+ExprPtr Parser::parseBoolean() {
     return std::make_shared<BoolExpr>(m_cur_tok, curTokenIs(TOK_TRUE));
 }
 
-std::shared_ptr<Expr> Parser::parsePrefixExpr() {
+ExprPtr Parser::parsePrefixExpr() {
     auto expr = std::make_shared<PrefixExpr>(m_cur_tok, m_cur_tok.literal);
 
     nextToken();
@@ -203,7 +203,7 @@ std::shared_ptr<Expr> Parser::parsePrefixExpr() {
     return expr;
 }
 
-std::shared_ptr<Expr> Parser::parseInfixExpr(std::shared_ptr<Expr> left) {
+ExprPtr Parser::parseInfixExpr(ExprPtr left) {
     auto infix_expr = std::make_shared<InfixExpr>(m_cur_tok, (left), m_cur_tok.literal);
 
     const int precedence = curPrecedence();
@@ -216,7 +216,7 @@ std::shared_ptr<Expr> Parser::parseInfixExpr(std::shared_ptr<Expr> left) {
     return infix_expr;
 }
 
-std::shared_ptr<Expr> Parser::parseGroupedExpr() {
+ExprPtr Parser::parseGroupedExpr() {
     nextToken();
 
     auto expr = parseExpr(LOWEST);
@@ -227,7 +227,7 @@ std::shared_ptr<Expr> Parser::parseGroupedExpr() {
     return expr;
 }
 
-std::shared_ptr<Expr> Parser::parseIfExpr() {
+ExprPtr Parser::parseIfExpr() {
     auto expr = std::make_shared<IfExpr>(m_cur_tok);
 
     if (!expectPeek(TOK_LPAREN))
@@ -256,7 +256,7 @@ std::shared_ptr<Expr> Parser::parseIfExpr() {
     return expr;
 }
 
-std::shared_ptr<Expr> Parser::parseFuncLiteral() {
+ExprPtr Parser::parseFuncLiteral() {
     auto func_literal = std::make_shared<FuncLiteral>(m_cur_tok);
 
     if (!expectPeek(TOK_LPAREN))
@@ -272,21 +272,21 @@ std::shared_ptr<Expr> Parser::parseFuncLiteral() {
     return func_literal;
 }
 
-std::shared_ptr<Expr> Parser::parseCallExpr(std::shared_ptr<Expr> func) {
+ExprPtr Parser::parseCallExpr(ExprPtr func) {
     auto call_expr = std::make_shared<CallExpr>(m_cur_tok, (func));
     call_expr->setArgs(parseExprList(TOK_RPAREN));
 
     return call_expr;
 }
 
-std::shared_ptr<Expr> Parser::parseArrayLiteral() {
+ExprPtr Parser::parseArrayLiteral() {
     auto arr = std::make_shared<ArrayLiteral>(m_cur_tok);
     arr->setElements(parseExprList(TOK_RBRACKET));
 
     return arr;
 }
 
-std::shared_ptr<Expr> Parser::parseIndexExpr(std::shared_ptr<Expr> left) {
+ExprPtr Parser::parseIndexExpr(ExprPtr left) {
     auto expr = std::make_shared<IndexExpr>(m_cur_tok, left);
 
     nextToken();
@@ -298,9 +298,9 @@ std::shared_ptr<Expr> Parser::parseIndexExpr(std::shared_ptr<Expr> left) {
     return expr;
 }
 
-std::shared_ptr<Expr> Parser::parseHashLiteral() {
+ExprPtr Parser::parseHashLiteral() {
     auto hash = std::make_shared<HashLiteral>(m_cur_tok);
-    std::map<std::shared_ptr<Expr>, std::shared_ptr<Expr>> pairs;
+    std::map<ExprPtr, ExprPtr> pairs;
 
     while (!peekTokenIs(TOK_RBRACE)) {
         nextToken();
@@ -327,8 +327,8 @@ std::shared_ptr<Expr> Parser::parseHashLiteral() {
     return hash;
 }
 
-std::vector<std::shared_ptr<Expr>> Parser::parseExprList(token_type end_tok) {
-    std::vector<std::shared_ptr<Expr>> list;
+std::vector<ExprPtr> Parser::parseExprList(token_type end_tok) {
+    std::vector<ExprPtr> list;
 
     if (peekTokenIs(end_tok)) {
         nextToken();

@@ -37,26 +37,27 @@ public:
     std::shared_ptr<LetStatement> parseLetStatement();
     std::shared_ptr<ReturnStatement> parseReturnStatement();
     std::shared_ptr<ExprStatement> parseExprStatement();
-    std::shared_ptr<Expr> parseExpr(int precedence);
-    std::shared_ptr<Expr> parseIdentifier();
-    std::shared_ptr<Expr> parseIntegerLiteral();
-    std::shared_ptr<Expr> parseFloatLiteral();
-    std::shared_ptr<Expr> parseStringLiteral();
-    std::shared_ptr<Expr> parseBoolean();
-    std::shared_ptr<Expr> parsePrefixExpr();
-    std::shared_ptr<Expr> parseInfixExpr(std::shared_ptr<Expr> left);
-    std::shared_ptr<Expr> parseGroupedExpr();
-    std::shared_ptr<Expr> parseIfExpr();
-    std::shared_ptr<Expr> parseFuncLiteral();
-    std::shared_ptr<Expr> parseCallExpr(std::shared_ptr<Expr> func);
-    std::shared_ptr<Expr> parseArrayLiteral();
-    std::shared_ptr<Expr> parseIndexExpr(std::shared_ptr<Expr> left);
-    std::shared_ptr<Expr> parseHashLiteral();
+
+    ExprPtr parseExpr(int precedence);
+    ExprPtr parseIdentifier();
+    ExprPtr parseIntegerLiteral();
+    ExprPtr parseFloatLiteral();
+    ExprPtr parseStringLiteral();
+    ExprPtr parseBoolean();
+    ExprPtr parsePrefixExpr();
+    ExprPtr parseInfixExpr(ExprPtr left);
+    ExprPtr parseGroupedExpr();
+    ExprPtr parseIfExpr();
+    ExprPtr parseFuncLiteral();
+    ExprPtr parseCallExpr(ExprPtr func);
+    ExprPtr parseArrayLiteral();
+    ExprPtr parseIndexExpr(ExprPtr left);
+    ExprPtr parseHashLiteral();
 
     std::shared_ptr<BlockStatement> parseBlockStatement();
 
     std::vector<Identifier> parseFuncParameters();
-    std::vector<std::shared_ptr<Expr>> parseExprList(token_type end_tok);
+    std::vector<ExprPtr> parseExprList(token_type end_tok);
 
     bool curTokenIs(token_type tok_type);
     bool peekTokenIs(token_type tok_type);

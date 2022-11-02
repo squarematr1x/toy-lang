@@ -267,7 +267,7 @@ ObjectPtr evalIdentifier(const ASTNodePtr& node, EnvPtr env) {
     return std::make_shared<Error>(("identifier not found: " + node->getIdentName()));
 }
 
-std::vector<ObjectPtr> evalExprs(std::vector<std::shared_ptr<Expr>> args, EnvPtr env) {
+std::vector<ObjectPtr> evalExprs(std::vector<ExprPtr> args, EnvPtr env) {
     std::vector<ObjectPtr> result;
 
     for (auto& arg : args) {

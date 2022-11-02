@@ -49,10 +49,14 @@ const std::vector<std::string> node_lut = {
     "NODE_INFIX"
 };
 
+class ASTNode;
 class Expr;
 class Identifier;
 class Statement;
 class BlockStatement;
+
+typedef std::shared_ptr<ASTNode> ASTNodePtr;
+typedef std::shared_ptr<Expr> ExprPtr;
 
 class ASTNode {
 public:
@@ -62,22 +66,22 @@ public:
     virtual const std::string getIdentName() const { return ""; }
     virtual std::string toString() const { return ""; }
 
-    virtual std::shared_ptr<Expr> getExpr() { return nullptr; }
-    virtual std::shared_ptr<Expr> getLeft() { return nullptr; }
-    virtual std::shared_ptr<Expr> getRight() { return nullptr; }
-    virtual std::shared_ptr<Expr> getIndex() { return nullptr; }
-    virtual std::shared_ptr<Expr> getCondition() { return nullptr; }
-    virtual std::shared_ptr<Expr> getFunc() { return nullptr; }
+    virtual ExprPtr getExpr() { return nullptr; }
+    virtual ExprPtr getLeft() { return nullptr; }
+    virtual ExprPtr getRight() { return nullptr; }
+    virtual ExprPtr getIndex() { return nullptr; }
+    virtual ExprPtr getCondition() { return nullptr; }
+    virtual ExprPtr getFunc() { return nullptr; }
     virtual std::shared_ptr<BlockStatement> getConsequence() { return nullptr; }
     virtual std::shared_ptr<BlockStatement> getAlternative() { return nullptr; }
     virtual std::shared_ptr<BlockStatement> getBody() { return nullptr; }
 
     virtual std::vector<Identifier> getParams() const { return {}; }
     virtual std::vector<std::shared_ptr<Statement>> getStatements() { return {}; }
-    virtual std::vector<std::shared_ptr<Expr>> getArgs() { return {}; }
-    virtual std::vector<std::shared_ptr<Expr>> getElements() { return {}; }
+    virtual std::vector<ExprPtr> getArgs() { return {}; }
+    virtual std::vector<ExprPtr> getElements() { return {}; }
 
-    virtual std::map<std::shared_ptr<Expr>, std::shared_ptr<Expr>> getPairs() { return {}; }
+    virtual std::map<ExprPtr, ExprPtr> getPairs() { return {}; }
 
     virtual int nodeType() const { return NODE_BASIC; }
     virtual int getIntValue() const { return -1; }
@@ -93,7 +97,7 @@ class Expr: public ASTNode {
 public:
     virtual ~Expr() = default;
 
-    virtual std::shared_ptr<Expr> getArgAt(unsigned int index) { (void)index; return nullptr;}
+    virtual ExprPtr getArgAt(unsigned int index) { (void)index; return nullptr;}
     
     virtual size_t getArgSize() const { return 0; }
 };
@@ -199,17 +203,17 @@ public:
 
 class ArrayLiteral: public Expr {
     Token m_tok;
-    std::vector<std::shared_ptr<Expr>> m_elements;
+    std::vector<ExprPtr> m_elements;
 
 public:
     ArrayLiteral(const Token& tok);
 
-    void setElements(std::vector<std::shared_ptr<Expr>> elements) { m_elements = elements; }
+    void setElements(std::vector<ExprPtr> elements) { m_elements = elements; }
 
     std::string toString() const override;
     const std::string tokenLiteral() const override { return m_tok.literal; }
 
-    std::vector<std::shared_ptr<Expr>> getElements() override { return m_elements; }
+    std::vector<ExprPtr> getElements() override { return m_elements; }
 
     int nodeType() const override { return NODE_ARRAY; }
 };
@@ -217,36 +221,36 @@ public:
 class IndexExpr: public Expr {
     Token m_tok;
     // <expr>[<expr>]
-    std::shared_ptr<Expr> m_left;
-    std::shared_ptr<Expr> m_index;
+    ExprPtr m_left;
+    ExprPtr m_index;
 
 public:
-    IndexExpr(const Token& tok, std::shared_ptr<Expr> left);
+    IndexExpr(const Token& tok, ExprPtr left);
 
-    void setIndex(std::shared_ptr<Expr> index) { m_index = index; }
+    void setIndex(ExprPtr index) { m_index = index; }
 
     std::string toString() const override;
     const std::string tokenLiteral() const override { return m_tok.literal; }
 
-    std::shared_ptr<Expr> getLeft() override { return m_left; }
-    std::shared_ptr<Expr> getIndex() override { return m_index; }
+    ExprPtr getLeft() override { return m_left; }
+    ExprPtr getIndex() override { return m_index; }
 
     int nodeType() const override { return NODE_INDEX; }
 };
 
 class HashLiteral: public Expr {
     Token m_tok;
-    std::map<std::shared_ptr<Expr>, std::shared_ptr<Expr>> m_pairs;
+    std::map<ExprPtr, ExprPtr> m_pairs;
 
 public:
     HashLiteral(const Token& tok);
 
-    void setPairs(std::map<std::shared_ptr<Expr>, std::shared_ptr<Expr>> pairs) { m_pairs = pairs; }
+    void setPairs(std::map<ExprPtr, ExprPtr> pairs) { m_pairs = pairs; }
 
     std::string toString() const override;
     const std::string tokenLiteral() const override { return m_tok.literal; }
 
-    std::map<std::shared_ptr<Expr>, std::shared_ptr<Expr>> getPairs() override { return m_pairs; }
+    std::map<ExprPtr, ExprPtr> getPairs() override { return m_pairs; }
 
     int nodeType() const override { return NODE_HASH; }
 };
@@ -254,58 +258,58 @@ public:
 class PrefixExpr: public Expr {
     Token m_tok;
     std::string m_oprtr;
-    std::shared_ptr<Expr> m_right;
+    ExprPtr m_right;
 
 public:
     PrefixExpr(const Token& tok, const std::string& oprtr);
 
-    void setRight(std::shared_ptr<Expr> right) { m_right = right; }
+    void setRight(ExprPtr right) { m_right = right; }
 
     std::string toString() const override;
     const std::string tokenLiteral() const override { return m_tok.literal; }
 
-    std::shared_ptr<Expr> getRight() override { return m_right; }
+    ExprPtr getRight() override { return m_right; }
 
     int nodeType() const override { return NODE_PREFIX; }
 };
 
 class InfixExpr: public Expr {
     Token m_tok;
-    std::shared_ptr<Expr> m_left;
-    std::shared_ptr<Expr> m_right;
+    ExprPtr m_left;
+    ExprPtr m_right;
     std::string m_oprtr;
 
 public:
-    InfixExpr(const Token& tok, std::shared_ptr<Expr> left, const std::string& oprtr);
+    InfixExpr(const Token& tok, ExprPtr left, const std::string& oprtr);
 
-    void setRight(std::shared_ptr<Expr> right) { m_right = right; }
+    void setRight(ExprPtr right) { m_right = right; }
 
     std::string toString() const override;
     const std::string tokenLiteral() const override { return m_tok.literal; }
 
-    std::shared_ptr<Expr> getLeft() override { return m_left; }
-    std::shared_ptr<Expr> getRight() override { return m_right; }
+    ExprPtr getLeft() override { return m_left; }
+    ExprPtr getRight() override { return m_right; }
 
     int nodeType() const override { return NODE_INFIX; }
 };
 
 class IfExpr: public Expr {
     Token m_tok;
-    std::shared_ptr<Expr> m_condition;
+    ExprPtr m_condition;
     std::shared_ptr<BlockStatement> m_consequence;
     std::shared_ptr<BlockStatement> m_alternative;
 
 public:
     IfExpr(Token tok);
 
-    void setCondition(std::shared_ptr<Expr> condition) { m_condition = condition; }
+    void setCondition(ExprPtr condition) { m_condition = condition; }
     void setConsequence(std::shared_ptr<BlockStatement> consequence) { m_consequence = consequence; }
     void setAlternative(std::shared_ptr<BlockStatement> alternative) { m_alternative = alternative; }
 
     std::string toString() const override;
     const std::string tokenLiteral() const override { return m_tok.literal; }
 
-    std::shared_ptr<Expr> getCondition() override { return m_condition; }
+    ExprPtr getCondition() override { return m_condition; }
     std::shared_ptr<BlockStatement> getConsequence() override { return m_consequence; }
     std::shared_ptr<BlockStatement> getAlternative() override { return m_alternative; }
 
@@ -335,23 +339,23 @@ public:
 
 class CallExpr: public Expr {
     Token m_tok;
-    std::shared_ptr<Expr> m_func;
-    std::vector<std::shared_ptr<Expr>> m_args;
+    ExprPtr m_func;
+    std::vector<ExprPtr> m_args;
 
 public:
-    CallExpr(const Token& tok, std::shared_ptr<Expr> func);
+    CallExpr(const Token& tok, ExprPtr func);
 
-    void setArgs(std::vector<std::shared_ptr<Expr>> args) { m_args = args; }
+    void setArgs(std::vector<ExprPtr> args) { m_args = args; }
 
     std::string toString() const override;
     const std::string tokenLiteral() const override { return m_tok.literal; }
 
-    std::shared_ptr<Expr> getFunc() override { return m_func; }
-    std::shared_ptr<Expr> getArgAt(unsigned int index) override;
+    ExprPtr getFunc() override { return m_func; }
+    ExprPtr getArgAt(unsigned int index) override;
 
     size_t getArgSize() const override { return m_args.size(); }
 
-    std::vector<std::shared_ptr<Expr>> getArgs() override { return m_args; }
+    std::vector<ExprPtr> getArgs() override { return m_args; }
 
     int nodeType() const override { return NODE_CALL_EXPR; }
 };
@@ -359,7 +363,7 @@ public:
 class LetStatement: public Statement {
     Token m_tok;
     Identifier m_name;
-    std::shared_ptr<Expr> m_value;
+    ExprPtr m_value;
 
 public:
     LetStatement(const Token& tok);
@@ -369,44 +373,44 @@ public:
     const std::string getIdentName() const override { return m_name.getIdentName(); }
 
     void setName(const Identifier ident) { m_name = ident; }
-    void setValue(std::shared_ptr<Expr> expr) { m_value = expr; }
+    void setValue(ExprPtr expr) { m_value = expr; }
 
-    std::shared_ptr<Expr> getExpr() override { return m_value; }
+    ExprPtr getExpr() override { return m_value; }
 
     int nodeType() const override { return NODE_LET_STMNT; }
 };
 
 class ReturnStatement: public Statement {
     Token m_tok;
-    std::shared_ptr<Expr> m_value;
+    ExprPtr m_value;
 
 public:
     ReturnStatement(const Token& tok);
 
-    void setValue(std::shared_ptr<Expr> expr) { m_value = expr; }
+    void setValue(ExprPtr expr) { m_value = expr; }
     
     std::string toString() const override;
     const std::string tokenLiteral() const override { return m_tok.literal; }
 
-    std::shared_ptr<Expr> getExpr() override { return m_value; }
+    ExprPtr getExpr() override { return m_value; }
 
     int nodeType() const override { return NODE_RETURN_STMNT; }
 };
 
 class ExprStatement: public Statement {
     Token m_tok;
-    std::shared_ptr<Expr> m_expr;
+    ExprPtr m_expr;
 
 public:
     ExprStatement(const Token& tok);
 
-    void setExpr(std::shared_ptr<Expr> expr) { m_expr = expr; }
+    void setExpr(ExprPtr expr) { m_expr = expr; }
 
     std::string toString() const override;
 
     const std::string tokenLiteral() const override { return m_tok.literal; }
 
-    std::shared_ptr<Expr> getExpr() override { return m_expr; }
+    ExprPtr getExpr() override { return m_expr; }
 
     int nodeType() const override { return NODE_EXPR_STMNT; }
 };
@@ -429,5 +433,3 @@ public:
 
     std::vector<std::shared_ptr<Statement>> getStatements() override { return m_statements; }
 };
-
-typedef std::shared_ptr<ASTNode> ASTNodePtr;

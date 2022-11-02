@@ -60,7 +60,7 @@ std::string PrefixExpr::toString() const {
     return prefix_str;
 }
 
-InfixExpr::InfixExpr(const Token& tok, std::shared_ptr<Expr> left, const std::string& oprtr)
+InfixExpr::InfixExpr(const Token& tok, ExprPtr left, const std::string& oprtr)
     : m_tok(tok), m_left((left)), m_oprtr(oprtr) {
 }
 
@@ -105,7 +105,7 @@ std::string FuncLiteral::toString() const {
     return func_literal_str;
 }
 
-CallExpr::CallExpr(const Token& tok, std::shared_ptr<Expr> func)
+CallExpr::CallExpr(const Token& tok, ExprPtr func)
     : m_tok(tok), m_func(func) {
 }
 
@@ -128,7 +128,7 @@ std::string CallExpr::toString() const {
     return call_str;
 }
 
-std::shared_ptr<Expr> CallExpr::getArgAt(unsigned int index) {
+ExprPtr CallExpr::getArgAt(unsigned int index) {
     if (m_args.size() == 0)
         return nullptr;
 
@@ -183,7 +183,7 @@ std::string HashLiteral::toString() const {
     return hash_str;
 }
 
-IndexExpr::IndexExpr(const Token& tok, std::shared_ptr<Expr> left)
+IndexExpr::IndexExpr(const Token& tok, ExprPtr left)
     : m_tok(tok), m_left(left) {
 }
 

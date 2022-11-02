@@ -30,7 +30,7 @@ ObjectPtr unwrapReturnValue(ObjectPtr obj);
 
 ObjectPtr error(const std::string& format);
 
-std::vector<ObjectPtr> evalExprs(std::vector<std::shared_ptr<Expr>> args, EnvPtr env);
+std::vector<ObjectPtr> evalExprs(std::vector<ExprPtr> args, EnvPtr env);
 
 EnvPtr extendFunctionEnv(const ObjectPtr& func, std::vector<ObjectPtr> args);
 
