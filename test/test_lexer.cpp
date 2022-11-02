@@ -4,7 +4,7 @@
 #include "../src/lexer.h"
 
 TEST(LexerTest, TestNextToken) {
-    const std::string input = "let x = 10; \"blaah\"; let y = 3.52; let foo = func(x, y) { x + y * 3/2 - 4;}; if (x > 5) return true else return false a == b a != b 2 < !z \"some string\" \"hello\" [2.1, 3]";
+    const std::string input = "let x = 10; \"blaah\"; let y = 3.52; let foo = func(x, y) { x + y * 3/2 - 4;}; if (x > 5) return true else return false a == b a != b 2 < !z \"some string\" \"hello\" [2.1, 3] {\"a\":3}";
     Lexer lexer(input);
 
     const std::vector<Token> test_tokens = {
@@ -70,6 +70,12 @@ TEST(LexerTest, TestNextToken) {
         {TOK_COMMA, ","},
         {TOK_INT, "3"},
         {TOK_RBRACKET, "]"},
+        // {\"a\":3}
+        {TOK_LBRACE, "{"},
+        {TOK_STR, "a"},
+        {TOK_COLON, ":"},
+        {TOK_INT, "3"},
+        {TOK_RBRACE, "}"},
         {TOK_EOF, ""}
     };
 

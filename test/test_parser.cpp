@@ -452,3 +452,40 @@ TEST(ParserTest, TestParseIndexExpr) {
     EXPECT_EQ(arr->getLeft()->toString(), "someArray");
     EXPECT_EQ(arr->getIndex()->toString(), "(1 + 2)");
 }
+
+TEST(ParserTest, TestParseHashLiteralStringKeys) {
+    const std::string input = "{\"one\": 1, \"two\": 2, \"three\": 3}";
+    const std::map<std::string, int> expected = {
+        {"one", 1},
+        {"two", 2},
+        {"three", 3}
+    };
+    Lexer lexer(input);
+    Parser parser(lexer);
+
+    auto program = parser.parseProgram();
+    checkParseErrors(parser);
+
+    auto hash = program->getStatementAt(0)->getExpr();
+    auto pairs = hash->getPairs();
+
+    const auto n = expected.size();
+    EXPECT_EQ(pairs.size(), n);
+
+    for (const auto& [key, value] : pairs)
+        EXPECT_EQ(expected.at(key->tokenLiteral()), value->getIntValue());
+}
+
+TEST(ParserTest, ParseEmptyHash) {
+    const std::string input = "{}";
+    Lexer lexer(input);
+    Parser parser(lexer);
+
+    auto program = parser.parseProgram();
+    checkParseErrors(parser);
+
+    auto hash = program->getStatementAt(0)->getExpr();
+    auto pairs = hash->getPairs();
+
+    EXPECT_EQ(pairs.size(), 0);
+}
