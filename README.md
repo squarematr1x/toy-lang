@@ -1,6 +1,13 @@
 # toy-lang
 toy-lang is currently a tree-walking interpreter, which transpiles to C++. In the future, for instance, a VM could be used to increase performance.
 
+### Features
+* Dynamic typing. Has types: int (32-bit), float (64-bit), boolean and string.
+* Data structures: array and associative array.
+* Functions.
+* Builtin functions for arrays, strings, etc.
+* Conditional statements.
+
 ### Quick demo of the REPL
 
 ```
@@ -12,6 +19,9 @@ toy-lang is currently a tree-walking interpreter, which transpiles to C++. In th
 1
 >> min(15, add(2, 9, 5))
 15
+>> let fib = func(n) { if (n==0) { 0 } else { if (n==1) { 1 } else { fib(n-1) + fib(n-2) } } }
+>> fib(7)
+13
 >> let a = 4
 >> let b = 4
 >> a == b
@@ -33,6 +43,11 @@ false
 'e'
 >> str[1] + "ve"
 'eve'
+>> let pair = {"first": [1, 2, 3], 19: false}
+>> pair["first"]
+[1, 2, 3]
+>> pair[19]
+false
 ```
 
 ### Build and run
