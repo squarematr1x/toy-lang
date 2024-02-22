@@ -64,7 +64,7 @@ When recursion is used a lot, LLDB debugger can become quite convenient. Debug w
 
 ### Detect memory issues with Valgrind
 
-Use: ```make check-leak-run```. Smart pointers don't eliminate all memory issues!
+Use: ```make check-leak-run```.
 
 ### Literature
 
