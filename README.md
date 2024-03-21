@@ -1,5 +1,5 @@
 # toy-lang
-toy-lang is currently a tree-walking interpreter, which transpiles to C++. In the future, for instance, a VM could be used to increase performance.
+toy-lang is, currently, a tree-walking interpreter, which transpiles to C++. In the future, for instance, a VM could be used to increase performance.
 
 ### Features
 * Dynamic typing. Has types: int (32-bit), float (64-bit), boolean and string.
